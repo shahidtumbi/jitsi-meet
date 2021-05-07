@@ -409,8 +409,7 @@ class Conference extends AbstractConference<Props, *> {
 
                     <LonelyMeetingExperience />
 
-                    { _shouldDisplayTileView ? undefined : <Filmstrip /> }
-                    <Toolbox />
+                    { _shouldDisplayTileView || <><Filmstrip /><Toolbox /></> }
                 </View>
 
                 <SafeAreaView
@@ -426,6 +425,7 @@ class Conference extends AbstractConference<Props, *> {
                 { }
 
                 { this._renderConferenceModals() }
+                {_shouldDisplayTileView && <Toolbox />}
             </>
         );
     }
