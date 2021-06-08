@@ -116,7 +116,8 @@ class Conference extends AbstractConference<Props, *> {
      */
     constructor(props) {
         super(props);
-        this.state = { ActionCalling: false };
+        this.state = { ActionCalling: false,
+            callStatus: this.props._callData.call_status };
 
         // Bind event handlers so they are only bound once per instance.
         this._onClick = this._onClick.bind(this);
@@ -133,11 +134,17 @@ class Conference extends AbstractConference<Props, *> {
      */
     componentDidMount() {
         BackButtonRegistry.addListener(this._onHardwareBackPress);
-        const eventListner = eventEmitter.addListener('customEventName', event => {
+        eventEmitter.addListener('customEventName', event => {
             if (JSON.parse(event).call_action == 'accepted') {
                 this.setState({ ActionCalling: true });
             }
         });
+        eventEmitter.addListener('CallStatusChangeEvent', event => {
+
+            this.setState({ callStatus: JSON.parse(event).call_status });
+
+        });
+
     }
 
     /**
@@ -273,6 +280,7 @@ class Conference extends AbstractConference<Props, *> {
                     this.state.ActionCalling ? this._setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId)
                         :				<CallingPage
                             fName = { this.props._callData.f_name }
+                            callCategory = { this.props._callData.call_category }
                             parentReference = { callingAction => callingAction ? this.setState({ ActionCalling: callingAction }) : '' } />
                 );
             } else if (this.props._callData.call_type == '1') {
@@ -280,7 +288,8 @@ class Conference extends AbstractConference<Props, *> {
                     this.state.ActionCalling ? this._setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId)
                         : <OutGoingCall
                             fName = { this.props._callData.f_name }
-                            callCategory = { this.props._callData.call_category } />
+                            callCategory = { this.props._callData.call_category }
+                            callStatus = { this.state.callStatus } />
 
                 );
             }

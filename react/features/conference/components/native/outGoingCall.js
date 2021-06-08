@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 
     StyleSheet,
@@ -17,7 +17,6 @@ import {
 const Siccura = NativeModules.Siccura;
 const eventEmitter = new NativeEventEmitter(Siccura);
 const OutGoingCall = props => {
-    const [ callStatus, setCallStatus ] = useState('Calling');
 
     function sayHiFromJava(callAction) {
         Siccura.callAction(JSON.stringify({ 'call_Action': callAction }), err => {
@@ -44,9 +43,9 @@ const OutGoingCall = props => {
                         <Text style = { [ styles.fonts, styles.paddingTop20 ] }>
                             {props.fName}
                         </Text>
-                        {/* <Text style = { [ styles.fonts, styles.paddingTop20 ] }>
-                            {callStatus}
-                        </Text> */}
+                        <Text style = { [ styles.fonts, styles.paddingTop20 ] }>
+                            {props.callStatus}
+                        </Text>
                         <TouchableOpacity>
                             <Text style = { [ styles.fonts, styles.paddingTop50 ] }>
                                 {`Outgoing ${props.callCategory}`}
