@@ -63,7 +63,7 @@
 -(NSString *)getTestString {
   @try {
     NSMutableDictionary *jsonDict = [NSMutableDictionary new];
-    [jsonDict setValue:@"0" forKey:@"call_type"];
+    [jsonDict setValue:@"1" forKey:@"call_type"];
     [jsonDict setValue:@"madhav dixit" forKey:@"f_name"];
     [jsonDict setValue:@"Connecting" forKey:@"call_status"];
     [jsonDict setValue:@"voice call" forKey:@"call_category"];

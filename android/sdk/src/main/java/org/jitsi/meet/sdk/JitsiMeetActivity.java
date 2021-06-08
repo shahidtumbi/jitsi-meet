@@ -138,6 +138,14 @@ public class JitsiMeetActivity extends FragmentActivity
         }
     }
 
+    public void setcallStatus(String callData){
+        if(getJitsiView() != null){
+            getJitsiView().setCallStatus(callData);
+        }
+    }
+
+
+
     public void join(@Nullable String url) {
         JitsiMeetConferenceOptions options
             = new JitsiMeetConferenceOptions.Builder()

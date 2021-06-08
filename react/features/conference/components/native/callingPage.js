@@ -30,7 +30,7 @@ const CallingPage = props => {
     }
 
     return (
-        <SafeAreaView style = {{ flex: 2 }}>
+        <View style = {{ flex: 2 }}>
             <ImageBackground
                 style = { [ styles.backgroundImage ] }
                 source = { require('../../../../../images/UI-Background-680x940.jpg') }>
@@ -92,7 +92,7 @@ const CallingPage = props => {
                 </View>
             </ImageBackground>
 
-        </SafeAreaView>
+        </View>
 
     );
 };

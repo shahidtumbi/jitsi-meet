@@ -218,7 +218,7 @@ public class MainActivity extends JitsiMeetActivity {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("call_status","Connected");
-            getJitsiView().setCallStatus(jsonObject.toString());
+            setcallStatus(jsonObject.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }

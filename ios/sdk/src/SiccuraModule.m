@@ -59,7 +59,7 @@ RCT_EXPORT_METHOD(callAction:(NSString *)json error:(RCTResponseSenderBlock)erro
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"customEventName"];
+    return @[@"customEventName",@"CallStatusChangeEvent"];
 }
 
 -(void)setCallData:(NSNotification *)value {

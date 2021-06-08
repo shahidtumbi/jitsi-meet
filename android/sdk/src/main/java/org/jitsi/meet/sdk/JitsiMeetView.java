@@ -223,4 +223,15 @@ public class JitsiMeetView extends BaseReactView<JitsiMeetViewListener>
             e.printStackTrace();
         }
     }
+
+    public void setCallStatus(String json) {
+        try {
+            ReactInstanceManager reactInstanceManager = ReactInstanceManagerHolder.getReactInstanceManager();
+            reactInstanceManager.getCurrentReactContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("CallStatusChangeEvent", json);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }
