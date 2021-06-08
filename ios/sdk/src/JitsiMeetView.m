@@ -23,7 +23,11 @@
 #import "JitsiMeetView+Private.h"
 #import "ReactUtils.h"
 #import "RNRootView.h"
+<<<<<<< HEAD
 #import "SiccuraModule.h"
+=======
+
+>>>>>>> 3bbfdb2846275261a15ac5e7dd916ff300204bac
 
 /**
  * Backwards compatibility: turn the boolean prop into a feature flag.

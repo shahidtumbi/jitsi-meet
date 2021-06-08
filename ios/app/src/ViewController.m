@@ -28,7 +28,6 @@
 
 
 @implementation ViewController
-@synthesize jitsiView;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -37,7 +36,7 @@
   jitsiView.delegate = self;
 
     [jitsiView join:[[JitsiMeet sharedInstance] getInitialConferenceOptions]];
-  
+
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(callActionNotification:)
                                                name:@"callActionNotification"
@@ -165,8 +164,5 @@
     JitsiMeetView *view = (JitsiMeetView *) self.view;
     [view leave];
 }
-
-#pragma mark - custom event
-
 
 @end

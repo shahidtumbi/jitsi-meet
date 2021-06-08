@@ -84,39 +84,15 @@ public class MainActivity extends JitsiMeetActivity {
     // JitsiMeetActivity overrides
     //
 
-    private final BroadcastReceiver callActionReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals("jitsi.call.action")) {
-               String msg = intent.getStringExtra("data");
-			   Log.d("call test","call test: accepted");
-                try {
-                    JSONObject call_data = new JSONObject();
-                    call_data.put("call_action","accepted");
-                    setcallData(call_data.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
-
-    private void registerBroadcastReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("jitsi.call.action");
-        registerReceiver(callActionReceiver, filter);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         JitsiMeet.showSplashScreen(this);
-        registerBroadcastReceiver();
         super.onCreate(savedInstanceState);
     }
 
     @Override
     protected boolean extraInitialize() {
-//        Log.d(this.getClass().getSimpleName(), "LIBRE_BUILD="+BuildConfig.LIBRE_BUILD);
+        //Log.d(this.getClass().getSimpleName(), "LIBRE_BUILD="+BuildConfig.LIBRE_BUILD);
 
         // Setup Crashlytics and Firebase Dynamic Links
         // Here we are using reflection since it may have been disabled at compile time.

@@ -9,20 +9,20 @@ import logger from './logger';
 /**
  * Signals the local participant activate the virtual background video or not.
  *
- * @param {Object} options - Represents the virtual background setted options.
+ * @param {boolean} enabled - If true enables video background, false otherwise.
  * @returns {Promise}
  */
-export function toggleBackgroundEffect(options: Object) {
+export function toggleBackgroundEffect(enabled: boolean) {
     return async function(dispatch: Object => Object, getState: () => any) {
-        await dispatch(backgroundEnabled(options.enabled));
-        await dispatch(setVirtualBackground(options));
         const state = getState();
+
         const { jitsiTrack } = getLocalVideoTrack(state['features/base/tracks']);
         const virtualBackground = state['features/virtual-background'];
 
         try {
-            if (options.enabled) {
+            if (enabled) {
                 await jitsiTrack.setEffect(await createVirtualBackgroundEffect(virtualBackground));
+                dispatch(backgroundEnabled(true));
             } else {
                 await jitsiTrack.setEffect(undefined);
                 dispatch(backgroundEnabled(false));
@@ -37,21 +37,19 @@ export function toggleBackgroundEffect(options: Object) {
 /**
  * Sets the selected virtual background image object.
  *
- * @param {Object} options - Represents the virtual background setted options.
+ * @param {Object} virtualSource - Virtual background image source.
+ * @param {boolean} isVirtualBackground - Indicate if virtual image is activated.
  * @returns {{
  *     type: SET_VIRTUAL_BACKGROUND,
  *     virtualSource: string,
- *     blurValue: number,
- *     type: string,
+ *     isVirtualBackground: boolean,
  * }}
  */
-export function setVirtualBackground(options: Object) {
+export function setVirtualBackground(virtualSource: string, isVirtualBackground: boolean) {
     return {
         type: SET_VIRTUAL_BACKGROUND,
-        virtualSource: options?.url,
-        blurValue: options?.blurValue,
-        backgroundType: options?.backgroundType,
-        selectedThumbnail: options?.selectedThumbnail
+        virtualSource,
+        isVirtualBackground
     };
 }
 
@@ -61,7 +59,7 @@ export function setVirtualBackground(options: Object) {
  * @param {boolean} backgroundEffectEnabled - Indicate if virtual background effect is activated.
  * @returns {{
  *      type: BACKGROUND_ENABLED,
- *      backgroundEffectEnabled: boolean
+ *      backgroundEffectEnabled: boolean,
  * }}
  */
 export function backgroundEnabled(backgroundEffectEnabled: boolean) {

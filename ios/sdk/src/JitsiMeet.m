@@ -53,6 +53,9 @@
         // Initialize the on and only bridge for interfacing with React Native.
         _bridgeWrapper = [[RCTBridgeWrapper alloc] init];
 
+        // Initialize the listener for handling start/stop screensharing notifications.
+        _screenshareEventEmiter = [[ScheenshareEventEmiter alloc] init];
+
         // Register a fatal error handler for React.
         registerReactFatalErrorHandler();
 

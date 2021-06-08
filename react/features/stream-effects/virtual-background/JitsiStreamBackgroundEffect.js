@@ -5,6 +5,7 @@ import {
     SET_TIMEOUT,
     timerWorkerScript
 } from './TimerWorker';
+const blurValue = '25px';
 
 /**
  * Represents a modified MediaStream that adds effects to video background.
@@ -39,7 +40,7 @@ export default class JitsiStreamBackgroundEffect {
     constructor(model: Object, options: Object) {
         this._options = options;
 
-        if (this._options.virtualBackground.backgroundType === 'image') {
+        if (this._options.virtualBackground.isVirtualBackground) {
             this._virtualImage = document.createElement('img');
             this._virtualImage.crossOrigin = 'anonymous';
             this._virtualImage.src = this._options.virtualBackground.virtualSource;
@@ -64,9 +65,9 @@ export default class JitsiStreamBackgroundEffect {
      * @param {EventHandler} response - The onmessage EventHandler parameter.
      * @returns {void}
      */
-    _onMaskFrameTimer(response: Object) {
+    async _onMaskFrameTimer(response: Object) {
         if (response.data.id === TIMEOUT_TICK) {
-            this._renderMask();
+            await this._renderMask();
         }
     }
 
@@ -82,7 +83,7 @@ export default class JitsiStreamBackgroundEffect {
         //
 
         // Smooth out the edges.
-        if (this._options.virtualBackground.backgroundType === 'image') {
+        if (this._options.virtualBackground.isVirtualBackground) {
             this._outputCanvasCtx.filter = 'blur(4px)';
         } else {
             this._outputCanvasCtx.filter = 'blur(8px)';
@@ -111,7 +112,7 @@ export default class JitsiStreamBackgroundEffect {
         //
 
         this._outputCanvasCtx.globalCompositeOperation = 'destination-over';
-        if (this._options.virtualBackground.backgroundType === 'image') {
+        if (this._options.virtualBackground.isVirtualBackground) {
             this._outputCanvasCtx.drawImage(
                 this._virtualImage,
                 0,
@@ -120,7 +121,7 @@ export default class JitsiStreamBackgroundEffect {
                 this._inputVideoElement.height
             );
         } else {
-            this._outputCanvasCtx.filter = `blur(${this._options.virtualBackground.blurValue}px)`;
+            this._outputCanvasCtx.filter = `blur(${blurValue})`;
             this._outputCanvasCtx.drawImage(this._inputVideoElement, 0, 0);
         }
     }

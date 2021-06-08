@@ -414,7 +414,7 @@ class Conference extends AbstractConference<Props, *> {
 
                 <TestConnectionInfo />
 
-                { this._renderConferenceNotification() }
+                { }
 
                 { this._renderConferenceModals() }
             </>
@@ -501,9 +501,6 @@ class Conference extends AbstractConference<Props, *> {
  */
 function _mapStateToProps(state) {
     const { connecting, connection } = state['features/base/connection'];
-    const { app } = state['features/base/app'];
-
-    console.log();
     const {
         conference,
         joining,
@@ -523,11 +520,10 @@ function _mapStateToProps(state) {
     //   are leaving one.
     const connecting_
         = connecting || (connection && (!membersOnly && (joining || (!conference && !leaving))));
-
+    const { app } = state['features/base/app'];
 
     return {
         ...abstractMapStateToProps(state),
-        _callData: JSON.parse(app.props.url.config.testStr),
         _aspectRatio: aspectRatio,
         _calendarEnabled: isCalendarEnabled(state),
         _connecting: Boolean(connecting_),
@@ -537,7 +533,8 @@ function _mapStateToProps(state) {
         _pictureInPictureEnabled: getFeatureFlag(state, PIP_ENABLED),
         _reducedUI: reducedUI,
         _toolboxVisible: isToolboxVisible(state),
-        conference
+        conference,
+        _callData: JSON.parse(app.props.url.config.testStr)
     };
 }
 

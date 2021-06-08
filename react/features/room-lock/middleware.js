@@ -16,7 +16,7 @@ import {
 } from '../notifications';
 
 import { _openPasswordRequiredPrompt } from './actions';
-import { PasswordRequiredPrompt } from './components';
+import { PasswordRequiredPrompt, RoomLockPrompt } from './components';
 import { LOCKED_REMOTELY } from './constants';
 import logger from './logger';
 
@@ -85,6 +85,7 @@ MiddlewareRegistry.register(store => next => action => {
  */
 function _conferenceJoined({ dispatch }, next, action) {
     dispatch(hideDialog(PasswordRequiredPrompt));
+    dispatch(hideDialog(RoomLockPrompt));
 
     return next(action);
 }
@@ -115,6 +116,7 @@ function _conferenceFailed({ dispatch }, next, action) {
         }
     } else {
         dispatch(hideDialog(PasswordRequiredPrompt));
+        dispatch(hideDialog(RoomLockPrompt));
     }
 
     return next(action);

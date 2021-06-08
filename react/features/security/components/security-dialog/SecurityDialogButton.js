@@ -1,7 +1,5 @@
 // @flow
 
-import type { Dispatch } from 'redux';
-
 import { createToolbarEvent, sendAnalytics } from '../../../analytics';
 import { translate } from '../../../base/i18n';
 import { IconSecurityOff, IconSecurityOn } from '../../../base/icons';
@@ -18,9 +16,10 @@ type Props = AbstractButtonProps & {
     _locked: boolean,
 
     /**
-     * The redux {@code dispatch} function.
+     * On click handler that opens the security dialog.
      */
-    dispatch: Dispatch<any>
+    onClick: Function
+
 };
 
 
@@ -41,7 +40,7 @@ class SecurityDialogButton extends AbstractButton<Props, *> {
      */
     _handleClick() {
         sendAnalytics(createToolbarEvent('toggle.security', { enable: !this.props._locked }));
-        this.props.dispatch(toggleSecurityDialog());
+        this.props.onClick();
     }
 
     /**
@@ -70,4 +69,14 @@ function mapStateToProps(state: Object) {
     };
 }
 
-export default translate(connect(mapStateToProps)(SecurityDialogButton));
+/**
+ * Maps dispatching of some action to React component props.
+ *
+ * @param {Function} dispatch - Redux action dispatcher.
+ * @returns {Props}
+ */
+const mapDispatchToProps = {
+    onClick: () => toggleSecurityDialog()
+};
+
+export default translate(connect(mapStateToProps, mapDispatchToProps)(SecurityDialogButton));
