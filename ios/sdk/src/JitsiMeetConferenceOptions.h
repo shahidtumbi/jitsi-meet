@@ -82,10 +82,7 @@
 @property (nonatomic, copy, nullable, readonly) NSString *room;
 @property (nonatomic, copy, nullable, readonly) NSString *subject;
 @property (nonatomic, copy, nullable, readonly) NSString *token;
-<<<<<<< HEAD
 @property (nonatomic, copy, nullable, readonly) NSString *testStr;
-=======
->>>>>>> 3bbfdb2846275261a15ac5e7dd916ff300204bac
 
 @property (nonatomic, copy, nullable) NSDictionary *colorScheme;
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;

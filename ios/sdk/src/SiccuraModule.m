@@ -22,6 +22,11 @@
                                              selector:@selector(setCallData:)
                                                  name:@"setCallData"
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setCallStatus:)
+                                                 name:@"setCallStatus"
+                                               object:nil];
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
@@ -63,6 +68,19 @@ RCT_EXPORT_METHOD(callAction:(NSString *)json error:(RCTResponseSenderBlock)erro
         NSLog(@"Value : %@",jsonStr);
         if (hasListeners) {
                    [self sendEventWithName:@"customEventName" body:jsonStr];
+        }
+    } @catch (NSException *exception) {
+        NSLog(@"Exception Occurred : %@",exception.description);
+    }
+}
+
+//{"call_status":"ringing"}
+-(void)setCallStatus:(NSNotification *)value {
+    @try {
+        NSString *jsonStr = [value object];
+        NSLog(@"Value : %@",jsonStr);
+        if (hasListeners) {
+                   [self sendEventWithName:@"CallStatusChangeEvent" body:jsonStr];
         }
     } @catch (NSException *exception) {
         NSLog(@"Exception Occurred : %@",exception.description);

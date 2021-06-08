@@ -32,10 +32,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-  jitsiView = (JitsiMeetView *) self.view;
-  jitsiView.delegate = self;
+  _jitsiView = (JitsiMeetView *) self.view;
+  _jitsiView.delegate = self;
 
-    [jitsiView join:[[JitsiMeet sharedInstance] getInitialConferenceOptions]];
+    [_jitsiView join:[[JitsiMeet sharedInstance] getInitialConferenceOptions]];
 
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(callActionNotification:)
@@ -46,7 +46,8 @@
 -(void)callActionNotification:(id)response {
   NSLog(@"callActionNotification : %@",response);
   NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@"accepted",@"call_action", nil];
-  [jitsiView setCallData:[self getJsonStringFromDict:tempDict]];
+  [_jitsiView setCallData:[self getJsonStringFromDict:tempDict]];
+  
 }
 
 -(NSString *)getJsonStringFromDict:(NSDictionary *)dict {
@@ -78,6 +79,8 @@
 }
 
 - (void)conferenceJoined:(NSDictionary *)data {
+  NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@"calling",@"call_status", nil];
+  [_jitsiView setCallStatus:[self getJsonStringFromDict:tempDict]];
     [self _onJitsiMeetViewDelegateEvent:@"CONFERENCE_JOINED" withData:data];
 
     // Register a NSUserActivity for this conference so it can be invoked as a

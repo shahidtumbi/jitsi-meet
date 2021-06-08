@@ -14,6 +14,7 @@
 
 @interface SiccuraModule : RCTEventEmitter <RCTBridgeModule>
 -(void)setCallData:(NSString *)jsonStr;
+-(void)setCallStatus:(NSNotification *)value;
 @end
 
 #endif /* SiccuraModule_h */

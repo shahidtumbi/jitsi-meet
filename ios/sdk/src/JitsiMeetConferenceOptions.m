@@ -159,10 +159,7 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
         _room = builder.room;
         _subject = builder.subject;
         _token = builder.token;
-<<<<<<< HEAD
         _testStr = builder.testStr;
-=======
->>>>>>> 3bbfdb2846275261a15ac5e7dd916ff300204bac
 
         _colorScheme = builder.colorScheme;
 
@@ -210,13 +207,10 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
     if (_subject != nil) {
         config[@"subject"] = self.subject;
     }
-<<<<<<< HEAD
 
     if (_testStr != nil) {
         config[@"testStr"] = self.testStr;
     }
-=======
->>>>>>> 3bbfdb2846275261a15ac5e7dd916ff300204bac
 
     NSMutableDictionary *urlProps = [[NSMutableDictionary alloc] init];
 
