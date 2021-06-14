@@ -149,6 +149,8 @@ function _updateAudioMode({ getState }, next, action) {
     }
 
     AudioMode.setMode(mode).catch(err => logger.error(`Failed to set audio mode ${String(mode)}: ${err}`));
-
+    if(audioOnly){
+        AudioMode.setAudioDevice("EARPIECE");
+    }
     return result;
 }
