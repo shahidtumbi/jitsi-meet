@@ -53,6 +53,11 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     private String token;
 
     /**
+     * Config. See: https://github.com/jitsi/jitsi-meet/blob/master/config.js
+     */
+    private Bundle config;
+
+    /**
      * Color scheme override, see: https://github.com/jitsi/jitsi-meet/blob/dbedee5e22e5dcf9c92db96ef5bb3c9982fc526d/react/features/base/color-scheme/defaultScheme.js
      */
     private Bundle colorScheme;
@@ -99,10 +104,6 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         return token;
     }
 
-    public Bundle getColorScheme() {
-        return colorScheme;
-    }
-
     public Bundle getFeatureFlags() {
         return featureFlags;
     }
@@ -133,6 +134,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         private String testStr;
         private String token;
 
+        private Bundle config;
         private Bundle colorScheme;
         private Bundle featureFlags;
 
@@ -143,6 +145,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         private JitsiMeetUserInfo userInfo;
 
         public Builder() {
+            config = new Bundle();
             featureFlags = new Bundle();
         }
 
@@ -192,19 +195,6 @@ public class JitsiMeetConferenceOptions implements Parcelable {
          */
         public Builder setToken(String token) {
             this.token = token;
-
-            return this;
-        }
-
-        /**
-         * Sets the color scheme override so the app is themed. See:
-         * https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/color-scheme/defaultScheme.js
-         * for the structure.
-         * @param colorScheme - A color scheme to be applied to the app.
-         * @return - The {@link Builder} object itself so the method calls can be chained.
-         */
-        public Builder setColorScheme(Bundle colorScheme) {
-            this.colorScheme = colorScheme;
 
             return this;
         }
@@ -292,6 +282,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
             options.subject = this.subject;
             options.testStr = this.testStr;
             options.token = this.token;
+            options.config = this.config;
             options.colorScheme = this.colorScheme;
             options.featureFlags = this.featureFlags;
             options.audioMuted = this.audioMuted;
@@ -312,6 +303,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         subject = in.readString();
         testStr = in.readString();
         token = in.readString();
+        config = in.readBundle();
         colorScheme = in.readBundle();
         featureFlags = in.readBundle();
         userInfo = new JitsiMeetUserInfo(in.readBundle());
@@ -406,6 +398,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         dest.writeString(subject);
         dest.writeString(testStr);
         dest.writeString(token);
+        dest.writeBundle(config);
         dest.writeBundle(colorScheme);
         dest.writeBundle(featureFlags);
         dest.writeBundle(userInfo != null ? userInfo.asBundle() : new Bundle());

@@ -37,12 +37,6 @@
 @property (nonatomic, copy, nullable) NSString *testStr;
 
 /**
- * Color scheme override, see:
- * https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/color-scheme/defaultScheme.js
- */
-@property (nonatomic, copy, nullable) NSDictionary *colorScheme;
-
-/**
  * Feature flags. See: https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/flags/constants.js
  */
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;
@@ -85,7 +79,6 @@
 @property (nonatomic, copy, nullable, readonly) NSString *token;
 @property (nonatomic, copy, nullable, readonly) NSString *testStr;
 
-@property (nonatomic, copy, nullable) NSDictionary *colorScheme;
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;
 
 @property (nonatomic, readonly) BOOL welcomePageEnabled;

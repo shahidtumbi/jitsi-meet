@@ -30,6 +30,7 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
     NSNumber *_audioMuted;
     NSNumber *_videoMuted;
     NSMutableDictionary *_featureFlags;
+    NSMutableDictionary *_config;
 }
 
 @dynamic audioOnly;
@@ -45,6 +46,7 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
         _token = nil;
         _testStr = nil;
 
+        _config = [[NSMutableDictionary alloc] init];
         _colorScheme = nil;
         _featureFlags = [[NSMutableDictionary alloc] init];
 
@@ -127,6 +129,7 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
     NSNumber *_audioMuted;
     NSNumber *_videoMuted;
     NSDictionary *_featureFlags;
+    NSDictionary *_config;
 }
 
 @dynamic audioOnly;
@@ -164,6 +167,7 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
         _token = builder.token;
         _testStr = builder.testStr;
 
+        _config = builder.config;
         _colorScheme = builder.colorScheme;
 
         _audioOnly = [builder getAudioOnly];
