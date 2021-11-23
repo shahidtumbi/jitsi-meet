@@ -19,12 +19,6 @@
 #import "JitsiMeetConferenceOptions+Private.h"
 #import "JitsiMeetUserInfo+Private.h"
 
-/**
- * Backwards compatibility: turn the boolean property into a feature flag.
- */
-static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
-
-
 @implementation JitsiMeetConferenceOptionsBuilder {
     NSNumber *_audioOnly;
     NSNumber *_audioMuted;
@@ -120,6 +114,23 @@ static NSString *const WelcomePageEnabledFeatureFlag = @"welcomepage.enabled";
 
 - (NSNumber *)getVideoMuted {
     return _videoMuted;
+}
+
+
+- (void)setConfigOverride:(NSString *_Nonnull)config withBoolean:(BOOL)value {
+    [self setConfigOverride:config withValue:[NSNumber numberWithBool:value]];
+}
+
+- (void)setConfigOverride:(NSString *_Nonnull)config withDictionary:(NSDictionary*)dictionary {
+    _config[config] = dictionary;
+}
+
+- (void)setConfigOverride:(NSString *_Nonnull)config withArray:( NSArray * _Nonnull)array {
+    _config[config] = array;
+}
+
+- (void)setConfigOverride:(NSString *_Nonnull)config withValue:(id _Nonnull)value {
+    _config[config] = value;
 }
 
 @end
