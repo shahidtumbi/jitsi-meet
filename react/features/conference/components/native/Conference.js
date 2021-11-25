@@ -275,7 +275,8 @@ class Conference extends AbstractConference<Props, *> {
             _largeVideoParticipantId,
             _reducedUI,
             _shouldDisplayTileView,
-            _toolboxVisible,
+            _toolboxVisible
+            _shouldDisplayTileView,
             conference
         } = this.props;
         const showGradient = _toolboxVisible;
@@ -430,7 +431,10 @@ class Conference extends AbstractConference<Props, *> {
 
                 <SafeAreaView
                     pointerEvents = 'box-none'
-                    style = { styles.navBarSafeView }>
+                    style = {
+                        _toolboxVisible
+                            ? styles.navBarSafeViewColor
+                            : styles.navBarSafeViewTransparent }>
                     <NavigationBar />
                     { this._renderNotificationsContainer() }
                     <KnockingParticipantList />
