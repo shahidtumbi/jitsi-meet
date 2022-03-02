@@ -23,7 +23,7 @@
 #import "JitsiMeetView+Private.h"
 #import "ReactUtils.h"
 #import "RNRootView.h"
-
+#import "SiccuraModule.h"
 
 /**
  * Backwards compatibility: turn the boolean prop into a feature flag.
@@ -233,6 +233,14 @@ static void initializeViewsMap() {
 
 + (instancetype)viewForExternalAPIScope:(NSString *)externalAPIScope {
     return [views objectForKey:externalAPIScope];
+}
+
+-(void)setCallData:(NSString *)json {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"setCallData" object:json];
+}
+
+-(void)setCallStatus:(NSString *)json {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"setCallStatus" object:json];
 }
 
 @end

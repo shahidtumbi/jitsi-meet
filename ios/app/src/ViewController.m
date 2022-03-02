@@ -29,10 +29,34 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    JitsiMeetView *view = (JitsiMeetView *) self.view;
-    view.delegate = self;
+  _jitsiView = (JitsiMeetView *) self.view;
+  _jitsiView.delegate = self;
 
-    [view join:[[JitsiMeet sharedInstance] getInitialConferenceOptions]];
+    [_jitsiView join:[[JitsiMeet sharedInstance] getInitialConferenceOptions]];
+
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(callActionNotification:)
+                                               name:@"callActionNotification"
+                                             object:nil];
+}
+
+-(void)callActionNotification:(id)response {
+  NSLog(@"callActionNotification : %@",response);
+  NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@"accepted",@"call_action", nil];
+  [_jitsiView setCallData:[self getJsonStringFromDict:tempDict]];
+  
+}
+
+-(NSString *)getJsonStringFromDict:(NSDictionary *)dict {
+  @try {
+    NSError * err = nil;
+    NSData * jsonData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:&err];
+    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    return jsonString;
+  } @catch(NSException *exception) {
+    NSLog(@"Exception Occurred : %@",exception.description);
+    return @"";
+  }
 }
 
 // JitsiMeetViewDelegate
@@ -52,6 +76,8 @@
 }
 
 - (void)conferenceJoined:(NSDictionary *)data {
+  NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@"calling",@"call_status", nil];
+  [_jitsiView setCallStatus:[self getJsonStringFromDict:tempDict]];
     [self _onJitsiMeetViewDelegateEvent:@"CONFERENCE_JOINED" withData:data];
 
     // Register a NSUserActivity for this conference so it can be invoked as a

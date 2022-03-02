@@ -572,7 +572,7 @@ var config = {
 
     // App name to be displayed in the invitation email subject, as an alternative to
     // interfaceConfig.APP_NAME.
-    // inviteAppName: null,
+    // inviteAppName: null,s
 
     // Moved from interfaceConfig(TOOLBAR_BUTTONS).
     // The name of the toolbar buttons to display in the toolbar, including the

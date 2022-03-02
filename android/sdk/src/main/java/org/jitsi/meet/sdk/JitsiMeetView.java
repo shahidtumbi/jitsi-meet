@@ -21,9 +21,14 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
+import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -206,5 +211,27 @@ public class JitsiMeetView extends BaseReactView<JitsiMeetViewListener>
     protected void onDetachedFromWindow() {
         dispose();
         super.onDetachedFromWindow();
+    }
+
+    public void setCallData(String json) {
+        try {
+            ReactInstanceManager reactInstanceManager = ReactInstanceManagerHolder.getReactInstanceManager();
+            reactInstanceManager.getCurrentReactContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("customEventName", json);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void setCallStatus(String json) {
+        try {
+            ReactInstanceManager reactInstanceManager = ReactInstanceManagerHolder.getReactInstanceManager();
+            reactInstanceManager.getCurrentReactContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("CallStatusChangeEvent", json);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

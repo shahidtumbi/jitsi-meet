@@ -3,7 +3,7 @@
 import React from 'react';
 import { NativeModules, SafeAreaView, StatusBar, View } from 'react-native';
 import { withSafeAreaInsets } from 'react-native-safe-area-context';
-
+import LinearGradient from 'react-native-linear-gradient';
 import { appNavigate } from '../../../app/actions';
 import { PIP_ENABLED, FULLSCREEN_ENABLED, getFeatureFlag } from '../../../base/flags';
 import { Container, LoadingIndicator, TintedView } from '../../../base/react';
@@ -42,7 +42,12 @@ import LonelyMeetingExperience from './LonelyMeetingExperience';
 import TitleBar from './TitleBar';
 import { EXPANDED_LABEL_TIMEOUT } from './constants';
 import styles from './styles';
-
+import NavigationBar from './NavigationBar';
+import CallingPage from './callingPage';
+import OutGoingCall from './outGoingCall';
+import styles, { NAVBAR_GRADIENT_COLORS } from './styles';
+const Siccura = NativeModules.Siccura;
+const eventEmitter = new NativeEventEmitter(Siccura);
 
 /**
  * The type of the React {@code Component} props of {@link Conference}.
@@ -144,6 +149,8 @@ class Conference extends AbstractConference<Props, State> {
      */
     constructor(props) {
         super(props);
+        this.state = { ActionCalling: false,
+            callStatus: this.props._callData.call_status };
 
         this.state = {
             visibleExpandedLabel: undefined
@@ -167,6 +174,17 @@ class Conference extends AbstractConference<Props, State> {
      */
     componentDidMount() {
         BackButtonRegistry.addListener(this._onHardwareBackPress);
+        eventEmitter.addListener('customEventName', event => {
+            if (JSON.parse(event).call_action == 'accepted') {
+                this.setState({ ActionCalling: true });
+            }
+        });
+        eventEmitter.addListener('CallStatusChangeEvent', event => {
+
+            this.setState({ callStatus: JSON.parse(event).call_status });
+
+        });
+
     }
 
     /**
@@ -321,11 +339,116 @@ class Conference extends AbstractConference<Props, State> {
             _shouldDisplayTileView,
             _toolboxVisible
         } = this.props;
+        const showGradient = _toolboxVisible;
+
+        const showJitsiPage = false;
 
         if (_reducedUI) {
             return this._renderContentForReducedUi();
         }
 
+        // if (conference && conference.participants && Object.keys(conference.participants).length == 0 ){
+
+        // }
+        if (this.props._callData.show_call_Screen == '1') {
+            if (this.props._callData.call_type == '0') {
+            // parentReference = {(callingAction)=>callingAction ? this._setJitsiSccren(_connecting,_shouldDisplayTileView,_largeVideoParticipantId): ''}
+                return (
+                    this.state.ActionCalling ? this._setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId)
+                        :				<CallingPage
+                            fName = { this.props._callData.f_name }
+                            callCategory = { this.props._callData.call_category }
+                            parentReference = { callingAction => callingAction ? this.setState({ ActionCalling: callingAction }) : '' } />
+                );
+            } else if (this.props._callData.call_type == '1') {
+                return (
+                    this.state.ActionCalling ? this._setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId)
+                        : <OutGoingCall
+                            fName = { this.props._callData.f_name }
+                            callCategory = { this.props._callData.call_category }
+                            callStatus = { this.state.callStatus } />
+
+                );
+            }
+        } else {
+            return (
+                this._setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId)
+            );
+        }
+
+
+        // return (
+        //     <>
+        //         {/*
+        //           * The LargeVideo is the lowermost stacking layer.
+        //           */
+        //             _shouldDisplayTileView
+        //                 ? <TileView onClick = { this._onClick } />
+        //                 : <LargeVideo onClick = { this._onClick } />
+        //         }
+
+        //         {/*
+        //           * If there is a ringing call, show the callee's info.
+        //           */
+        //             <CalleeInfoContainer />
+        //         }
+
+        //         {/*
+        //           * The activity/loading indicator goes above everything, except
+        //           * the toolbox/toolbars and the dialogs.
+        //           */
+        //             _connecting
+        //                 && <TintedView>
+        //                     <LoadingIndicator />
+        //                 </TintedView>
+        //         }
+
+        //         <SafeAreaView
+        //             pointerEvents = 'box-none'
+        //             style = { [styles.toolboxAndFilmstripContainer] }>
+        //             <Labels />
+        //             <Captions onPress = { this._onClick } />
+        //             { _shouldDisplayTileView || <Container style = { styles.displayNameContainer }>
+        //                 <DisplayNameLabel participantId = { _largeVideoParticipantId } />
+        //             </Container> }
+
+        //             <LonelyMeetingExperience />
+
+        //             {/*
+        //               * The Toolbox is in a stacking layer below the Filmstrip.
+        //               */}
+        //             <Toolbox />
+
+        //             {/*
+        //               * The Filmstrip is in a stacking layer above the
+        //               * LargeVideo. The LargeVideo and the Filmstrip form what
+        //               * the Web/React app calls "videospace". Presumably, the
+        //               * name and grouping stem from the fact that these two
+        //               * React Components depict the videos of the conference's
+        //               * participants.
+        //               */
+        //                 _shouldDisplayTileView ? undefined : <Filmstrip />
+        //             }
+        //         </SafeAreaView>
+
+        //         <SafeAreaView
+        //             pointerEvents = 'box-none'
+        //             style = { styles.navBarSafeView }>
+        //             <NavigationBar />
+        //             { this._renderNotificationsContainer() }
+        //             <KnockingParticipantList />
+        //         </SafeAreaView>
+
+        //         <TestConnectionInfo />
+
+        //         { this._renderConferenceNotification() }
+
+        //         { this._renderConferenceModals() }
+        //     </>
+        // );
+    }
+
+    _setJitsiSccren(_connecting, _shouldDisplayTileView, _largeVideoParticipantId) {
         return (
             <>
                 {/*
@@ -357,7 +480,6 @@ class Conference extends AbstractConference<Props, State> {
                     style = { styles.toolboxAndFilmstripContainer }>
 
                     <Captions onPress = { this._onClick } />
-
                     { _shouldDisplayTileView || <Container style = { styles.displayNameContainer }>
                         <DisplayNameLabel participantId = { _largeVideoParticipantId } />
                     </Container> }
@@ -505,6 +627,7 @@ function _mapStateToProps(state) {
     //   are leaving one.
     const connecting_
         = connecting || (connection && (!membersOnly && (joining || (!conference && !leaving))));
+    const { app } = state['features/base/app'];
 
     return {
         ...abstractMapStateToProps(state),
@@ -518,7 +641,8 @@ function _mapStateToProps(state) {
         _pictureInPictureEnabled: getFeatureFlag(state, PIP_ENABLED),
         _reducedUI: reducedUI,
         _showLobby: getIsLobbyVisible(state),
-        _toolboxVisible: isToolboxVisible(state)
+        _toolboxVisible: isToolboxVisible(state),
+        _callData: JSON.parse(app.props.url.config.testStr)
     };
 }
 

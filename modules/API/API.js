@@ -67,17 +67,8 @@ import { setVolume } from '../../react/features/filmstrip';
 import { invite } from '../../react/features/invite';
 import {
     selectParticipantInLargeVideo
-} from '../../react/features/large-video/actions.any';
-import {
-    captureLargeVideoScreenshot,
-    resizeLargeVideo
-} from '../../react/features/large-video/actions.web';
-import { toggleLobbyMode, answerKnockingParticipant } from '../../react/features/lobby/actions';
-import {
-    close as closeParticipantsPane,
-    open as openParticipantsPane
-} from '../../react/features/participants-pane/actions';
-import { getParticipantsPaneOpen, isForceMuted } from '../../react/features/participants-pane/functions';
+} from '../../react/features/large-video/actions';
+import { toggleLobbyMode } from '../../react/features/lobby/actions';
 import { RECORDING_TYPES } from '../../react/features/recording/constants';
 import { getActiveSession } from '../../react/features/recording/functions';
 import { isScreenAudioSupported } from '../../react/features/screen-share';

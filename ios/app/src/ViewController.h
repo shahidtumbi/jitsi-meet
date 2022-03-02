@@ -19,6 +19,8 @@
 
 @interface ViewController : UIViewController<JitsiMeetViewDelegate>
 
+@property (weak, nonatomic) JitsiMeetView *jitsiView;
+
 - (void)terminate;
 
 @end

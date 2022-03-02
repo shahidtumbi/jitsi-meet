@@ -142,8 +142,8 @@ import {
 } from './react/features/prejoin';
 import { disableReceiver, stopReceiver } from './react/features/remote-control';
 import { setScreenAudioShareState, isScreenAudioShared } from './react/features/screen-share/';
-import { toggleScreenshotCaptureSummary } from './react/features/screenshot-capture';
-import { isScreenshotCaptureEnabled } from './react/features/screenshot-capture/functions';
+import { toggleScreenshotCaptureEffect } from './react/features/screenshot-capture';
+import { setSharedVideoStatus } from './react/features/shared-video/actions';
 import { AudioMixerEffect } from './react/features/stream-effects/audio-mixer/AudioMixerEffect';
 import { createPresenterEffect } from './react/features/stream-effects/presenter';
 import { createRnnoiseProcessor } from './react/features/stream-effects/rnnoise';
@@ -1612,6 +1612,11 @@ export default {
 
         APP.store.dispatch(setScreenAudioShareState(false));
 
+        if (didHaveVideo) {
+            promise = promise.then(() => createLocalTracksF({ devices: [ 'video' ] }))
+                .then(([ stream ]) => {
+                    logger.debug(`_turnScreenSharingOff using ${stream} for useVideoStream`);
+
         promise = promise.then(() => createLocalTracksF({ devices: [ 'video' ] }))
             .then(([ stream ]) => {
                 logger.debug(`_turnScreenSharingOff using ${stream} for useVideoStream`);
@@ -1726,10 +1731,10 @@ export default {
                 = this._turnScreenSharingOff.bind(this, didHaveVideo);
 
             const desktopVideoStream = desktopStreams.find(stream => stream.getType() === MEDIA_TYPE.VIDEO);
-            const desktopAudioStream = desktopStreams.find(stream => stream.getType() === MEDIA_TYPE.AUDIO);
+            const dekstopAudioStream = desktopStreams.find(stream => stream.getType() === MEDIA_TYPE.AUDIO);
 
-            if (desktopAudioStream) {
-                desktopAudioStream.on(
+            if (dekstopAudioStream) {
+                dekstopAudioStream.on(
                     JitsiTrackEvents.LOCAL_TRACK_STOPPED,
                     () => {
                         logger.debug(`Local screensharing audio track stopped. ${this.isSharingScreen}`);
@@ -1930,6 +1935,10 @@ export default {
                     await this.useVideoStream(desktopVideoStream);
                 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> cc4f3c86704b93f81a88aaeae83c33e252662bcd
                 if (this._desktopAudioStream) {
                     const localAudio = getLocalJitsiAudioTrack(APP.store.getState());
 
@@ -2577,8 +2586,8 @@ export default {
         });
 
         APP.UI.addListener(
-            UIEvents.TOGGLE_SCREENSHARING, ({ enabled, audioOnly, ignoreDidHaveVideo }) => {
-                this.toggleScreenSharing(enabled, { audioOnly }, ignoreDidHaveVideo);
+            UIEvents.TOGGLE_SCREENSHARING, audioOnly => {
+                this.toggleScreenSharing(undefined, { audioOnly });
             }
         );
     },

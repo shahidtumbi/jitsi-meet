@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import { setPassword as setPass } from '../../../../base/conference';
 import { Dialog } from '../../../../base/dialog';
+import { translate } from '../../../../base/i18n';
 import { isLocalParticipantModerator } from '../../../../base/participants';
 import { connect } from '../../../../base/redux';
 import { E2EESection } from '../../../../e2ee/components';
@@ -12,11 +13,6 @@ import { LobbySection } from '../../../../lobby';
 import PasswordSection from './PasswordSection';
 
 type Props = {
-
-    /**
-     * Toolbar buttons which have their click exposed through the API.
-     */
-     _buttonsWithNotifyClick: Array<string | Object>,
 
     /**
      * Whether or not the current user can modify the current password.
@@ -53,7 +49,12 @@ type Props = {
     /**
      * Action that sets the conference password.
      */
-    setPassword: Function
+    setPassword: Function,
+
+    /**
+     * Invoked to obtain translated strings.
+     */
+    t: Function
 };
 
 /**
@@ -62,7 +63,6 @@ type Props = {
  * @returns {React$Element<any>}
  */
 function SecurityDialog({
-    _buttonsWithNotifyClick,
     _canEditPassword,
     _conference,
     _locked,
@@ -83,12 +83,11 @@ function SecurityDialog({
         <Dialog
             hideCancelButton = { true }
             submitDisabled = { true }
-            titleKey = 'security.header'
+            titleKey = 'security.securityOptions'
             width = { 'small' }>
             <div className = 'security-dialog'>
                 <LobbySection />
                 <PasswordSection
-                    buttonsWithNotifyClick = { _buttonsWithNotifyClick }
                     canEditPassword = { _canEditPassword }
                     conference = { _conference }
                     locked = { _locked }
@@ -124,22 +123,19 @@ function mapStateToProps(state) {
         locked,
         password
     } = state['features/base/conference'];
-    const { roomPasswordNumberOfDigits, buttonsWithNotifyClick } = state['features/base/config'];
-
-    const showE2ee = Boolean(e2eeSupported) && isLocalParticipantModerator(state);
+    const { roomPasswordNumberOfDigits } = state['features/base/config'];
 
     return {
-        _buttonsWithNotifyClick: buttonsWithNotifyClick,
         _canEditPassword: isLocalParticipantModerator(state),
         _conference: conference,
         _dialIn: state['features/invite'],
         _locked: locked,
         _password: password,
         _passwordNumberOfDigits: roomPasswordNumberOfDigits,
-        _showE2ee: showE2ee
+        _showE2ee: Boolean(e2eeSupported)
     };
 }
 
 const mapDispatchToProps = { setPassword: setPass };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SecurityDialog);
+export default translate(connect(mapStateToProps, mapDispatchToProps)(SecurityDialog));

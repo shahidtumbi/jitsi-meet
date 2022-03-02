@@ -40,6 +40,9 @@ public class JitsiMeetConferenceOptions implements Parcelable {
      * Room name.
      */
     private String room;
+
+    private String testStr;
+
     /**
      * JWT token used for authentication.
      */
@@ -68,6 +71,18 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         return room;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public String getTestStr() {
+        return testStr;
+    }
+
+    public void setTestStr(String testStr) {
+        this.testStr = testStr;
+    }
+
     public String getToken() {
         return token;
     }
@@ -86,6 +101,8 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     public static class Builder {
         private URL serverURL;
         private String room;
+        private String subject;
+        private String testStr;
         private String token;
 
         private Bundle config;
@@ -127,6 +144,12 @@ public class JitsiMeetConferenceOptions implements Parcelable {
          */
         public Builder setSubject(String subject) {
             setConfigOverride("subject", subject);
+
+            return this;
+        }
+
+        public Builder setTestStr(String testStr) {
+            this.testStr = testStr;
 
             return this;
         }
@@ -239,6 +262,8 @@ public class JitsiMeetConferenceOptions implements Parcelable {
 
             options.serverURL = this.serverURL;
             options.room = this.room;
+            options.subject = this.subject;
+            options.testStr = this.testStr;
             options.token = this.token;
             options.config = this.config;
             options.featureFlags = this.featureFlags;
@@ -254,6 +279,8 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     private JitsiMeetConferenceOptions(Parcel in) {
         serverURL = (URL) in.readSerializable();
         room = in.readString();
+        subject = in.readString();
+        testStr = in.readString();
         token = in.readString();
         config = in.readBundle();
         featureFlags = in.readBundle();
@@ -269,6 +296,29 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         }
 
         props.putBundle("flags", featureFlags);
+
+        if (colorScheme != null) {
+            props.putBundle("colorScheme", colorScheme);
+        }
+
+        Bundle config = new Bundle();
+
+        if (audioMuted != null) {
+            config.putBoolean("startWithAudioMuted", audioMuted);
+        }
+        if (audioOnly != null) {
+            config.putBoolean("startAudioOnly", audioOnly);
+        }
+        if (videoMuted != null) {
+            config.putBoolean("startWithVideoMuted", videoMuted);
+        }
+        if (subject != null) {
+            config.putString("subject", subject);
+        }
+
+        if(testStr != null){
+            config.putString("testStr", testStr);
+        }
 
         Bundle urlProps = new Bundle();
 
@@ -317,6 +367,8 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeSerializable(serverURL);
         dest.writeString(room);
+        dest.writeString(subject);
+        dest.writeString(testStr);
         dest.writeString(token);
         dest.writeBundle(config);
         dest.writeBundle(featureFlags);

@@ -55,6 +55,8 @@
 		DEFC743F21B178FA00E4DD96 /* LocaleDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFC743D21B178FA00E4DD96 /* LocaleDetector.m */; };
 		DEFE535421FB1BF800011A3A /* JitsiMeet.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFE535321FB1BF800011A3A /* JitsiMeet.m */; };
 		DEFE535621FB2E8300011A3A /* ReactUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFE535521FB2E8300011A3A /* ReactUtils.m */; };
+		F7EC7F3D262455C70053DE75 /* SiccuraModule.h in Headers */ = {isa = PBXBuildFile; fileRef = F7EC7F3B262455C60053DE75 /* SiccuraModule.h */; };
+		F7EC7F3E262455C70053DE75 /* SiccuraModule.m in Sources */ = {isa = PBXBuildFile; fileRef = F7EC7F3C262455C70053DE75 /* SiccuraModule.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -121,6 +123,8 @@
 		DEFE535721FB2E9E00011A3A /* ReactUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReactUtils.h; sourceTree = "<group>"; };
 		DEFE535821FB311F00011A3A /* JitsiMeet+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JitsiMeet+Private.h"; sourceTree = "<group>"; };
 		E4376CA6886DE68FD7A4294B /* libPods-JitsiMeetSDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-JitsiMeetSDK.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F7EC7F3B262455C60053DE75 /* SiccuraModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SiccuraModule.h; sourceTree = "<group>"; };
+		F7EC7F3C262455C70053DE75 /* SiccuraModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SiccuraModule.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -178,6 +182,8 @@
 				0BD906E81EC0C00300C8C18E /* JitsiMeet.h */,
 				DEFE535821FB311F00011A3A /* JitsiMeet+Private.h */,
 				DEA9F283258A5D9900D4CD74 /* JitsiMeetSDK.h */,
+				F7EC7F3B262455C60053DE75 /* SiccuraModule.h */,
+				F7EC7F3C262455C70053DE75 /* SiccuraModule.m */,
 				DEFE535321FB1BF800011A3A /* JitsiMeet.m */,
 				4ED4FFF12721B9B90074E620 /* JitsiAudioSession.h */,
 				4ED4FFF52721BAE10074E620 /* JitsiAudioSession+Private.h */,
@@ -290,6 +296,7 @@
 				DE81A2D42316AC4D00AE1940 /* JitsiMeetLogger.h in Headers */,
 				DE65AACA2317FFCD00290BEC /* LogUtils.h in Headers */,
 				DEAD3226220C497000E93636 /* JitsiMeetConferenceOptions.h in Headers */,
+				F7EC7F3D262455C70053DE75 /* SiccuraModule.h in Headers */,
 				C81E9AB925AC5AD800B134D9 /* ExternalAPI.h in Headers */,
 				C8AFD27F2462C613000293D2 /* InfoPlistUtil.h in Headers */,
 			);
@@ -455,6 +462,7 @@
 				DEAFA779229EAD520033A7FA /* RNRootView.m in Sources */,
 				DE762DB622AFDE8D000DEBD6 /* JitsiMeetUserInfo.m in Sources */,
 				DEAD3227220C497000E93636 /* JitsiMeetConferenceOptions.m in Sources */,
+				F7EC7F3E262455C70053DE75 /* SiccuraModule.m in Sources */,
 				0B93EF7F1EC9DDCD0030D24D /* RCTBridgeWrapper.m in Sources */,
 				0BA13D311EE83FF8007BEF7F /* ExternalAPI.m in Sources */,
 				0BCA49601EC4B6C600B793EE /* POSIX.m in Sources */,

@@ -46,4 +46,6 @@
 - (void)sendChatMessage:(NSString * _Nonnull)message :(NSString * _Nullable)to;
 - (void)setVideoMuted:(BOOL)muted;
 
+-(void)setCallData:(NSString * _Nonnull)json;
+-(void)setCallStatus:(NSString * _Nonnull)json;
 @end

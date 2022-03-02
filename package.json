@@ -72,8 +72,13 @@
     "jquery-i18next": "1.2.1",
     "js-md5": "0.6.1",
     "jwt-decode": "2.2.0",
+<<<<<<< HEAD
     "lib-jitsi-meet": "https://github.com/jitsi/lib-jitsi-meet/releases/download/v1387.0.0+6ddc054c/lib-jitsi-meet.tgz",
     "libflacjs": "https://git@github.com/mmig/libflac.js#93d37e7f811f01cf7d8b6a603e38bd3c3810907d",
+=======
+    "lib-jitsi-meet": "github:jitsi/lib-jitsi-meet#49c4e75f37cfec5a5bdd921c869b6ec1bff8f9d2",
+    "libflacjs": "github:mmig/libflac.js#93d37e7f811f01cf7d8b6a603e38bd3c3810907d",
+>>>>>>> cc4f3c86704b93f81a88aaeae83c33e252662bcd
     "lodash": "4.17.21",
     "moment": "2.29.1",
     "moment-duration-format": "2.2.2",
@@ -98,6 +103,7 @@
     "react-native-get-random-values": "1.7.2",
     "react-native-immersive": "2.0.0",
     "react-native-keep-awake": "4.0.0",
+<<<<<<< HEAD
     "react-native-pager-view": "5.4.9",
     "react-native-paper": "4.11.1",
     "react-native-performance": "2.1.0",
@@ -106,6 +112,11 @@
     "react-native-screens": "3.10.1",
     "react-native-sound": "0.11.1",
     "react-native-splash-screen": "3.3.0",
+=======
+    "react-native-linear-gradient": "^2.5.6",
+    "react-native-sound": "github:jitsi/react-native-sound#3fe5480fce935e888d5089d94a191c7c7e3aa190",
+    "react-native-splash-screen": "3.2.0",
+>>>>>>> cc4f3c86704b93f81a88aaeae83c33e252662bcd
     "react-native-svg": "12.1.0",
     "react-native-svg-transformer": "1.0.0",
     "react-native-tab-view": "3.1.1",

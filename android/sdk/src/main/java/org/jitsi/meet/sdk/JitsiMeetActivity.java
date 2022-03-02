@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +31,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.facebook.react.modules.core.PermissionListener;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import android.app.Activity;
@@ -87,6 +89,13 @@ public class JitsiMeetActivity extends AppCompatActivity
         }
     }
 
+    public void sendAction(String msg){
+        Intent intent = new Intent();
+        intent.setAction("jitsi.call.action");
+        intent.putExtra("data",msg);
+        sendBroadcast(intent);
+    }
+
     @Override
     public void onDestroy() {
         // Here we are trying to handle the following corner case: an application using the SDK
@@ -122,6 +131,20 @@ public class JitsiMeetActivity extends AppCompatActivity
             = (JitsiMeetFragment) getSupportFragmentManager().findFragmentById(R.id.jitsiFragment);
         return fragment != null ? fragment.getJitsiView() : null;
     }
+
+    public void setcallData(String callData){
+        if(getJitsiView() != null){
+            getJitsiView().setCallData(callData);
+        }
+    }
+
+    public void setcallStatus(String callData){
+        if(getJitsiView() != null){
+            getJitsiView().setCallStatus(callData);
+        }
+    }
+
+
 
     public void join(@Nullable String url) {
         JitsiMeetConferenceOptions options

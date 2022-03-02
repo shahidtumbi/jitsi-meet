@@ -29,13 +29,14 @@
         _serverURL = nil;
         _room = nil;
         _token = nil;
+        _testStr = nil;
 
         _config = [[NSMutableDictionary alloc] init];
         _featureFlags = [[NSMutableDictionary alloc] init];
 
         _userInfo = nil;
     }
-    
+
     return self;
 }
 
@@ -101,6 +102,7 @@
         _serverURL = builder.serverURL;
         _room = builder.room;
         _token = builder.token;
+        _testStr = builder.testStr;
 
         _config = builder.config;
 
@@ -126,6 +128,28 @@
     NSMutableDictionary *props = [[NSMutableDictionary alloc] init];
 
     props[@"flags"] = [NSMutableDictionary dictionaryWithDictionary:_featureFlags];
+
+    if (_colorScheme != nil) {
+        props[@"colorScheme"] = self.colorScheme;
+    }
+
+    NSMutableDictionary *config = [[NSMutableDictionary alloc] init];
+    if (_audioOnly != nil) {
+        config[@"startAudioOnly"] = @(self.audioOnly);
+    }
+    if (_audioMuted != nil) {
+        config[@"startWithAudioMuted"] = @(self.audioMuted);
+    }
+    if (_videoMuted != nil) {
+        config[@"startWithVideoMuted"] = @(self.videoMuted);
+    }
+    if (_subject != nil) {
+        config[@"subject"] = self.subject;
+    }
+
+    if (_testStr != nil) {
+        config[@"testStr"] = self.testStr;
+    }
 
     NSMutableDictionary *urlProps = [[NSMutableDictionary alloc] init];
 

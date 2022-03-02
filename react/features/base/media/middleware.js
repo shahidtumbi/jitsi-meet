@@ -45,7 +45,8 @@ import {
     _AUDIO_INITIAL_MEDIA_STATE,
     _VIDEO_INITIAL_MEDIA_STATE
 } from './reducer';
-
+import {NativeModules} from "react-native";
+const { AudioMode } = NativeModules;
 /**
  * Implements the entry point of the middleware of the feature base/media.
  *

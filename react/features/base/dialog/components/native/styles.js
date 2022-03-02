@@ -109,11 +109,27 @@ const brandedDialogText = {
 };
 
 const brandedDialogLabelStyle = {
-    color: ColorPalette.white,
+    color: schemeColor('text'),
     flexShrink: 1,
     fontSize: MD_FONT_SIZE,
     opacity: 0.90
 };
+
+const brandedDialogItemContainerStyle = {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: MD_ITEM_HEIGHT
+};
+
+const brandedDialogIconStyle = {
+    color: schemeColor('icon'),
+    fontSize: 24
+};
+
+export const inputDialog = {
+    bottomField: {
+        marginBottom: 0
+    },
 
 const brandedDialogItemContainerStyle = {
     alignItems: 'center',
@@ -155,15 +171,14 @@ ColorSchemeRegistry.register('BottomSheet', {
          */
         labelStyle: {
             ...brandedDialogLabelStyle,
-            marginLeft: 16
+            marginLeft: 32
         },
 
         /**
          * Container style for a generic item rendered in the menu.
          */
         style: {
-            ...brandedDialogItemContainerStyle,
-            paddingHorizontal: MD_ITEM_MARGIN_PADDING
+            ...brandedDialogItemContainerStyle
         },
 
         /**

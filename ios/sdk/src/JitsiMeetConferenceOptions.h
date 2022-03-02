@@ -34,6 +34,8 @@
  */
 @property (nonatomic, copy, nullable) NSString *token;
 
+@property (nonatomic, copy, nullable) NSString *testStr;
+
 /**
  * Feature flags. See: https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/flags/constants.js
  */
@@ -69,6 +71,7 @@
 
 @property (nonatomic, copy, nullable, readonly) NSString *room;
 @property (nonatomic, copy, nullable, readonly) NSString *token;
+@property (nonatomic, copy, nullable, readonly) NSString *testStr;
 
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;
 
