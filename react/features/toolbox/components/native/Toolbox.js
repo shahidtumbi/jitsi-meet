@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import { View } from 'react-native';
+import { View,TouchableHighlight } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ColorSchemeRegistry } from '../../../base/color-scheme';
@@ -21,6 +21,12 @@ import VideoMuteButton from '../VideoMuteButton';
 import OverflowMenuButton from './OverflowMenuButton';
 import RaiseHandButton from './RaiseHandButton';
 import ToggleCameraButton from './ToggleCameraButton';
+import {
+        Icon,
+        IconAudioRoute
+    } from '../../../base/icons';
+    import AudioRoutePickerDialog from '../../../mobile/audio-mode/components/AudioRoutePickerDialog';
+    import { openDialog } from '../../../../features/base/dialog';
 import styles from './styles';
 
 /**
@@ -114,6 +120,14 @@ function Toolbox(props: Props) {
                 <OverflowMenuButton
                     styles = { buttonStylesBorderless }
                     toggledStyles = { toggledButtonStyles } />
+                    <TouchableHighlight style={{right:10,top:2}}
+                    onPress = {()=> props.dispatch(openDialog(AudioRoutePickerDialog))}>
+                <View style = { styles.deviceRow } >
+                    <Icon style={{fontSize: 30}}
+                        src = { IconAudioRoute }
+                       />
+                </View>
+            </TouchableHighlight>
                 <HangupButton
                     styles = { hangupButtonStyles } />
             </SafeAreaView>
