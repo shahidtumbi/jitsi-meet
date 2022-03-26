@@ -24,8 +24,7 @@ $flagsImagePath: "../images/";
 /* Flags END */
 
 /* Modules BEGIN */
-
-@import 'aui_reset';
+@import 'reset';
 @import 'atlaskit_overrides';
 @import 'base';
 @import 'utils';
@@ -42,7 +41,6 @@ $flagsImagePath: "../images/";
 @import 'modals/settings/settings';
 @import 'modals/screen-share/share-audio';
 @import 'modals/screen-share/share-screen-warning';
-@import 'modals/speaker_stats/speaker_stats';
 @import 'modals/virtual-background/virtual-background';
 @import 'modals/local-recording/local-recording';
 @import 'videolayout_default';
@@ -57,7 +55,6 @@ $flagsImagePath: "../images/";
 @import 'welcome_page_content';
 @import 'welcome_page_settings_toolbar';
 @import 'toolbars';
-@import 'keyboard-shortcuts';
 @import 'redirect_page';
 @import 'components/form-control';
 @import 'components/link';
@@ -65,7 +62,6 @@ $flagsImagePath: "../images/";
 @import 'components/input-control';
 @import 'components/input-slider';
 @import "connection-info";
-@import 'aui-components/dropdown';
 @import '404';
 @import 'policy';
 @import 'popover';
@@ -83,7 +79,6 @@ $flagsImagePath: "../images/";
 @import 'navigate_section_list';
 @import 'third-party-branding/google';
 @import 'third-party-branding/microsoft';
-@import 'avatar';
 @import 'promotional-footer';
 @import 'chrome-extension-banner';
 @import 'settings-button';

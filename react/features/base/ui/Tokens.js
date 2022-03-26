@@ -44,6 +44,7 @@ export const colors = {
 
     warning05: '#F8AE1A',
     warning06: '#FFD600',
+    warning07: '#FFD740',
 
     disabled01: '#00000040',
 
@@ -64,6 +65,7 @@ export const colorMap = {
     uiBackground: 'surface01',
 
     // Container background
+    ui00: 'surface00',
     ui01: 'surface02',
     ui02: 'surface03',
     ui03: 'surface04',
@@ -166,6 +168,9 @@ export const colorMap = {
     // Text for saved input values
     text06: 'surface03',
 
+    // Text info
+    text07Info: 'surface02',
+
     // error messages
     textError: 'error06',
 
@@ -264,6 +269,9 @@ export const colorMap = {
 
     // Color for indicating a raised hand
     warning02: 'warning06',
+
+    // Color for indicating recording info
+    warning03: 'warning07',
 
     // Color for disabled tab
     tab01Disabled: 'disabled01',
@@ -365,6 +373,13 @@ export const typography = {
     bodyLongRegular: {
         fontSize: 14,
         lineHeight: 24,
+        fontWeight: font.weightRegular,
+        letterSpacing: 0
+    },
+
+    bodyLongRegularLarge: {
+        fontSize: 16,
+        lineHeight: 26,
         fontWeight: font.weightRegular,
         letterSpacing: 0
     },

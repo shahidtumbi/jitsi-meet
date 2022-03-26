@@ -13,7 +13,16 @@ import {
     isLocalParticipantModerator
 } from '../../../base/participants';
 import { equals } from '../../../base/redux';
-import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from '../../../breakout-rooms/functions';
+import {
+    getBreakoutRooms,
+    getBreakoutRoomsConfig,
+    getCurrentRoomId,
+    isInBreakoutRoom
+} from '../../../breakout-rooms/functions';
+import {
+    getKnockingParticipants,
+    getLobbyEnabled
+} from '../../../lobby/functions';
 import MuteEveryoneDialog
     from '../../../video-menu/components/native/MuteEveryoneDialog';
 import {
@@ -43,7 +52,7 @@ const ParticipantsPane = () => {
         [ dispatch ]);
     const { t } = useTranslation();
 
-    const { hideAddRoomButton } = useSelector(state => state['features/base/config']);
+    const { hideAddRoomButton } = useSelector(getBreakoutRoomsConfig);
     const { conference } = useSelector(state => state['features/base/conference']);
 
     // $FlowExpectedError
@@ -58,11 +67,15 @@ const ParticipantsPane = () => {
         && participantsCount > 2 && rooms.length > 1;
     const addBreakoutRoom
         = _isBreakoutRoomsSupported && !hideAddRoomButton && isLocalModerator;
+    const lobbyEnabled = useSelector(getLobbyEnabled);
+    const lobbyParticipants = useSelector(getKnockingParticipants);
 
     return (
         <JitsiScreen style = { styles.participantsPaneContainer }>
             <LobbyParticipantList />
             <MeetingParticipantList
+                breakoutRooms = { _isBreakoutRoomsSupported && rooms }
+                lobbyParticipants = { lobbyEnabled && lobbyParticipants }
                 searchString = { searchString }
                 setSearchString = { setSearchString } />
             {

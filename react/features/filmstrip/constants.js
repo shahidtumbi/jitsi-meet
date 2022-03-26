@@ -29,16 +29,6 @@ export const SQUARE_TILE_ASPECT_RATIO = 1;
 export const DISPLAY_DRAWER_THRESHOLD = 512;
 
 /**
- * Breakpoint past which a single column view is enforced in tile view.
- */
-export const SINGLE_COLUMN_BREAKPOINT = 300;
-
-/**
- * Breakpoint past which a two column view is enforced in tile view.
- */
-export const TWO_COLUMN_BREAKPOINT = 1000;
-
-/**
  * Breakpoint past which the aspect ratio is switched in tile view.
  * Also, past this breakpoint, if there are two participants in the conference, we enforce
  * single column view.
@@ -57,9 +47,14 @@ export const TILE_MIN_HEIGHT_SMALL = 150;
 export const TILE_MIN_HEIGHT_LARGE = 200;
 
 /**
- * Aspect ratio for portrait tiles. (height / width).
+ * Aspect ratio for portrait tiles.
  */
-export const TILE_PORTRAIT_ASPECT_RATIO = 1.3;
+export const TILE_PORTRAIT_ASPECT_RATIO = 1 / 1.3;
+
+/**
+ * The default number of visible tiles for tile view.
+ */
+export const TILE_VIEW_DEFAULT_NUMBER_OF_VISIBLE_TILES = 25;
 
 /**
  * The default number of columns for tile view.
@@ -150,14 +145,14 @@ export const TILE_VERTICAL_CONTAINER_HORIZONTAL_MARGIN = 2;
  *
  * @type {number}
  */
-export const TILE_VIEW_GRID_VERTICAL_MARGIN = 12;
+export const TILE_VIEW_GRID_VERTICAL_MARGIN = 14;
 
 /**
  * The horizontal margin of the tile grid container.
  *
  * @type {number}
  */
-export const TILE_VIEW_GRID_HORIZONTAL_MARGIN = 12;
+export const TILE_VIEW_GRID_HORIZONTAL_MARGIN = 14;
 
 /**
  * The height of the whole toolbar.
@@ -255,6 +250,11 @@ export const INDICATORS_TOOLTIP_POSITION = {
  * The default (and minimum) width for the vertical filmstrip (user resizable).
  */
 export const DEFAULT_FILMSTRIP_WIDTH = 120;
+
+/**
+ * The default aspect ratio for the local tile.
+ */
+export const DEFAULT_LOCAL_TILE_ASPECT_RATIO = 16 / 9;
 
 /**
  * The width of the filmstrip at which it no longer goes above the stage view, but it pushes it.

@@ -1,15 +1,21 @@
 // @flow
 import type { Dispatch } from 'redux';
 
-import { getLocalParticipant, getParticipantById, pinParticipant } from '../base/participants';
+import {
+    getLocalParticipant,
+    getParticipantById,
+    getRemoteParticipantCount,
+    pinParticipant
+} from '../base/participants';
 import { shouldHideSelfView } from '../base/settings/functions.any';
-import { getTileViewGridDimensions } from '../video-layout';
+import { getMaxColumnCount } from '../video-layout';
 
 import {
     SET_FILMSTRIP_WIDTH,
     SET_HORIZONTAL_VIEW_DIMENSIONS,
     SET_TILE_VIEW_DIMENSIONS,
     SET_USER_FILMSTRIP_WIDTH,
+    SET_USER_IS_RESIZING,
     SET_VERTICAL_VIEW_DIMENSIONS,
     SET_VOLUME
 } from './actionTypes';
@@ -20,13 +26,17 @@ import {
     TILE_HORIZONTAL_MARGIN,
     TILE_VERTICAL_CONTAINER_HORIZONTAL_MARGIN,
     TILE_VERTICAL_MARGIN,
+    TILE_VIEW_DEFAULT_NUMBER_OF_VISIBLE_TILES,
+    TILE_VIEW_GRID_HORIZONTAL_MARGIN,
+    TILE_VIEW_GRID_VERTICAL_MARGIN,
     VERTICAL_FILMSTRIP_VERTICAL_MARGIN
 } from './constants';
 import {
+    calculateNotResponsiveTileViewDimensions,
+    calculateResponsiveTileViewDimensions,
     calculateThumbnailSizeForHorizontalView,
-    calculateThumbnailSizeForTileView,
     calculateThumbnailSizeForVerticalView,
-    calculateThumbnailSizeForResizableVerticalView,
+    getNumberOfPartipantsForTileView,
     isFilmstripResizable,
     showGridInVerticalView
 } from './functions';
@@ -41,37 +51,55 @@ export * from './actions.any';
  * resolved to Redux state using the {@code toState} function.
  * @returns {Function}
  */
-export function setTileViewDimensions(dimensions: Object) {
+export function setTileViewDimensions() {
     return (dispatch: Dispatch<any>, getState: Function) => {
         const state = getState();
         const { clientHeight, clientWidth } = state['features/base/responsive-ui'];
-        const { disableResponsiveTiles, disableTileEnlargement } = state['features/base/config'];
+        const {
+            disableResponsiveTiles,
+            disableTileEnlargement,
+            tileView = {}
+        } = state['features/base/config'];
+        const { numberOfVisibleTiles = TILE_VIEW_DEFAULT_NUMBER_OF_VISIBLE_TILES } = tileView;
+        const numberOfParticipants = getNumberOfPartipantsForTileView(state);
+        const maxColumns = getMaxColumnCount(state);
+
         const {
             height,
-            width
-        } = calculateThumbnailSizeForTileView({
-            ...dimensions,
-            clientWidth,
-            clientHeight,
-            disableResponsiveTiles,
-            disableTileEnlargement
-        });
-        const { columns, rows } = dimensions;
+            width,
+            columns,
+            rows
+        } = disableResponsiveTiles
+            ? calculateNotResponsiveTileViewDimensions(state)
+            : calculateResponsiveTileViewDimensions({
+                clientWidth,
+                clientHeight,
+                disableTileEnlargement,
+                maxColumns,
+                numberOfParticipants,
+                numberOfVisibleTiles
+            });
         const thumbnailsTotalHeight = rows * (TILE_VERTICAL_MARGIN + height);
         const hasScroll = clientHeight < thumbnailsTotalHeight;
-        const filmstripWidth = (columns * (TILE_HORIZONTAL_MARGIN + width)) + (hasScroll ? SCROLL_SIZE : 0);
-        const filmstripHeight = Math.min(clientHeight, thumbnailsTotalHeight);
+        const filmstripWidth
+            = Math.min(clientWidth - TILE_VIEW_GRID_HORIZONTAL_MARGIN, columns * (TILE_HORIZONTAL_MARGIN + width))
+                + (hasScroll ? SCROLL_SIZE : 0);
+        const filmstripHeight = Math.min(clientHeight - TILE_VIEW_GRID_VERTICAL_MARGIN, thumbnailsTotalHeight);
 
         dispatch({
             type: SET_TILE_VIEW_DIMENSIONS,
             dimensions: {
-                gridDimensions: dimensions,
+                gridDimensions: {
+                    columns,
+                    rows
+                },
                 thumbnailSize: {
                     height,
                     width
                 },
                 filmstripHeight,
-                filmstripWidth
+                filmstripWidth,
+                hasScroll
             }
         });
     };
@@ -90,37 +118,51 @@ export function setVerticalViewDimensions() {
         const disableSelfView = shouldHideSelfView(state);
         const resizableFilmstrip = isFilmstripResizable(state);
         const _verticalViewGrid = showGridInVerticalView(state);
+        const numberOfRemoteParticipants = getRemoteParticipantCount(state);
 
         let gridView = {};
         let thumbnails = {};
         let filmstripDimensions = {};
+        let hasScroll = false;
+        let remoteVideosContainerWidth;
+        let remoteVideosContainerHeight;
 
         // grid view in the vertical filmstrip
         if (_verticalViewGrid) {
-            const dimensions = getTileViewGridDimensions(state, filmstripWidth.current);
+            const { tileView = {} } = state['features/base/config'];
+            const { numberOfVisibleTiles = TILE_VIEW_DEFAULT_NUMBER_OF_VISIBLE_TILES } = tileView;
+            const numberOfParticipants = getNumberOfPartipantsForTileView(state);
+            const maxColumns = getMaxColumnCount(state);
             const {
                 height,
-                width
-            } = calculateThumbnailSizeForTileView({
-                ...dimensions,
+                width,
+                columns,
+                rows
+            } = calculateResponsiveTileViewDimensions({
                 clientWidth: filmstripWidth.current,
                 clientHeight,
-                disableResponsiveTiles: false,
                 disableTileEnlargement: false,
-                isVerticalFilmstrip: true
+                isVerticalFilmstrip: true,
+                maxColumns,
+                numberOfParticipants,
+                numberOfVisibleTiles
             });
-            const { columns, rows } = dimensions;
             const thumbnailsTotalHeight = rows * (TILE_VERTICAL_MARGIN + height);
-            const hasScroll = clientHeight < thumbnailsTotalHeight;
+
+            hasScroll = clientHeight < thumbnailsTotalHeight;
             const widthOfFilmstrip = (columns * (TILE_HORIZONTAL_MARGIN + width)) + (hasScroll ? SCROLL_SIZE : 0);
-            const filmstripHeight = Math.min(clientHeight, thumbnailsTotalHeight);
+            const filmstripHeight = Math.min(clientHeight - TILE_VIEW_GRID_VERTICAL_MARGIN, thumbnailsTotalHeight);
 
             gridView = {
-                gridDimensions: dimensions,
+                gridDimensions: {
+                    columns,
+                    rows
+                },
                 thumbnailSize: {
                     height,
                     width
-                }
+                },
+                hasScroll
             };
 
             filmstripDimensions = {
@@ -128,9 +170,15 @@ export function setVerticalViewDimensions() {
                 width: widthOfFilmstrip
             };
         } else {
-            thumbnails = resizableFilmstrip
-                ? calculateThumbnailSizeForResizableVerticalView(clientWidth, filmstripWidth.current)
-                : calculateThumbnailSizeForVerticalView(clientWidth);
+            thumbnails = calculateThumbnailSizeForVerticalView(clientWidth, filmstripWidth.current, resizableFilmstrip);
+
+            remoteVideosContainerWidth
+                = thumbnails?.local?.width + TILE_VERTICAL_CONTAINER_HORIZONTAL_MARGIN + SCROLL_SIZE;
+            remoteVideosContainerHeight
+                = clientHeight - (disableSelfView ? 0 : thumbnails?.local?.height) - VERTICAL_FILMSTRIP_VERTICAL_MARGIN;
+            hasScroll
+                = remoteVideosContainerHeight
+                    < (thumbnails?.remote.height + TILE_VERTICAL_MARGIN) * numberOfRemoteParticipants;
         }
 
         dispatch({
@@ -138,12 +186,11 @@ export function setVerticalViewDimensions() {
             dimensions: {
                 ...thumbnails,
                 remoteVideosContainer: _verticalViewGrid ? filmstripDimensions : {
-                    width: thumbnails?.local?.width
-                        + TILE_VERTICAL_CONTAINER_HORIZONTAL_MARGIN + SCROLL_SIZE,
-                    height: clientHeight - (disableSelfView ? 0 : thumbnails?.local?.height)
-                        - VERTICAL_FILMSTRIP_VERTICAL_MARGIN
+                    width: remoteVideosContainerWidth,
+                    height: remoteVideosContainerHeight
                 },
-                gridView
+                gridView,
+                hasScroll
             }
         });
     };
@@ -160,16 +207,24 @@ export function setHorizontalViewDimensions() {
         const { clientHeight = 0, clientWidth = 0 } = state['features/base/responsive-ui'];
         const disableSelfView = shouldHideSelfView(state);
         const thumbnails = calculateThumbnailSizeForHorizontalView(clientHeight);
+        const remoteVideosContainerWidth
+            = clientWidth - (disableSelfView ? 0 : thumbnails?.local?.width) - HORIZONTAL_FILMSTRIP_MARGIN;
+        const remoteVideosContainerHeight
+            = thumbnails?.local?.height + TILE_VERTICAL_MARGIN + STAGE_VIEW_THUMBNAIL_VERTICAL_BORDER + SCROLL_SIZE;
+        const numberOfRemoteParticipants = getRemoteParticipantCount(state);
+        const hasScroll
+            = remoteVideosContainerHeight
+                < (thumbnails?.remote.width + TILE_HORIZONTAL_MARGIN) * numberOfRemoteParticipants;
 
         dispatch({
             type: SET_HORIZONTAL_VIEW_DIMENSIONS,
             dimensions: {
                 ...thumbnails,
                 remoteVideosContainer: {
-                    width: clientWidth - (disableSelfView ? 0 : thumbnails?.local?.width) - HORIZONTAL_FILMSTRIP_MARGIN,
-                    height: thumbnails?.local?.height
-                        + TILE_VERTICAL_MARGIN + STAGE_VIEW_THUMBNAIL_VERTICAL_BORDER + SCROLL_SIZE
-                }
+                    width: remoteVideosContainerWidth,
+                    height: remoteVideosContainerHeight
+                },
+                hasScroll
             }
         });
     };
@@ -243,5 +298,18 @@ export function setUserFilmstripWidth(width: number) {
     return {
         type: SET_USER_FILMSTRIP_WIDTH,
         width
+    };
+}
+
+/**
+ * Sets whether the user is resizing or not.
+ *
+ * @param {boolean} resizing - Whether the user is resizing or not.
+ * @returns {Object}
+ */
+export function setUserIsResizing(resizing: boolean) {
+    return {
+        type: SET_USER_IS_RESIZING,
+        resizing
     };
 }

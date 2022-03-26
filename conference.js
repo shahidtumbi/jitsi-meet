@@ -27,6 +27,7 @@ import {
 } from './react/features/app/actions';
 import { showModeratedNotification } from './react/features/av-moderation/actions';
 import { shouldShowModeratedNotification } from './react/features/av-moderation/functions';
+import { setAudioOnly } from './react/features/base/audio-only';
 import {
     AVATAR_URL_COMMAND,
     EMAIL_COMMAND,
@@ -51,7 +52,7 @@ import {
     sendLocalParticipant,
     nonParticipantMessageReceived
 } from './react/features/base/conference';
-import { getReplaceParticipant } from './react/features/base/config/functions';
+import { getReplaceParticipant, getMultipleVideoSupportFeatureFlag } from './react/features/base/config/functions';
 import {
     checkAndNotifyForNewDevice,
     getAvailableDevices,
@@ -105,6 +106,7 @@ import {
     updateSettings
 } from './react/features/base/settings';
 import {
+    addLocalTrack,
     createLocalPresenterTrack,
     createLocalTracksF,
     destroyLocalTracks,
@@ -126,6 +128,7 @@ import {
     maybeOpenFeedbackDialog,
     submitFeedback
 } from './react/features/feedback';
+import { maybeSetLobbyChatMessageListener } from './react/features/lobby/actions.any';
 import {
     isModerationNotificationDisplayed,
     showNotification,
@@ -1442,11 +1445,13 @@ export default {
      * @returns {Promise}
      */
     useVideoStream(newTrack) {
+        const state = APP.store.getState();
+
         logger.debug(`useVideoStream: ${newTrack}`);
 
         return new Promise((resolve, reject) => {
             _replaceLocalVideoTrackQueue.enqueue(onFinish => {
-                const oldTrack = getLocalJitsiVideoTrack(APP.store.getState());
+                const oldTrack = getLocalJitsiVideoTrack(state);
 
                 logger.debug(`useVideoStream: Replacing ${oldTrack} with ${newTrack}`);
 
@@ -1457,6 +1462,26 @@ export default {
                     return;
                 }
 
+                // In the multi-stream mode, add the track to the conference if there is no existing track, replace it
+                // otherwise.
+                if (getMultipleVideoSupportFeatureFlag(state)) {
+                    const trackAction = oldTrack
+                        ? replaceLocalTrack(oldTrack, newTrack, room)
+                        : addLocalTrack(newTrack);
+
+                    APP.store.dispatch(trackAction)
+                        .then(() => {
+                            this.setVideoMuteStatus();
+                        })
+                        .then(resolve)
+                        .catch(error => {
+                            logger.error(`useVideoStream failed: ${error}`);
+                            reject(error);
+                        })
+                        .then(onFinish);
+
+                    return;
+                }
                 APP.store.dispatch(
                     replaceLocalTrack(oldTrack, newTrack, room))
                     .then(() => {
@@ -1681,6 +1706,9 @@ export default {
             return Promise.reject('Cannot toggle screen sharing: not supported.');
         }
 
+        if (this.isAudioOnly()) {
+            APP.store.dispatch(setAudioOnly(false));
+        }
         if (toggle) {
             try {
                 await this._switchToScreenSharing(options);
@@ -1946,11 +1974,13 @@ export default {
                     // api.
                     if (localAudio) {
                         this._mixerEffect = new AudioMixerEffect(this._desktopAudioStream);
-
+                        logger.debug(`_switchToScreenSharing is mixing ${this._desktopAudioStream} and ${localAudio}`
+                        + ' as a single audio stream');
                         await localAudio.setEffect(this._mixerEffect);
                     } else {
                         // If no local stream is present ( i.e. no input audio devices) we use the screen share audio
                         // stream as we would use a regular stream.
+                        logger.debug(`_switchToScreenSharing is using ${this._desktopAudioStream} for useAudioStream`);
                         await this.useAudioStream(this._desktopAudioStream);
 
                     }
@@ -2110,6 +2140,10 @@ export default {
         room.on(JitsiConferenceEvents.USER_ROLE_CHANGED, (id, role) => {
             if (this.isLocalId(id)) {
                 logger.info(`My role changed, new role: ${role}`);
+
+                if (role === 'moderator') {
+                    APP.store.dispatch(maybeSetLobbyChatMessageListener());
+                }
 
                 APP.store.dispatch(localParticipantRoleChanged(role));
                 APP.API.notifyUserRoleChanged(id, role);

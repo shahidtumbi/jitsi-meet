@@ -6,6 +6,8 @@ import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
 export const DROPBOX_LOGO = require('../../../../../images/dropboxLogo_square.png');
 export const ICON_CLOUD = require('../../../../../images/icon-cloud.png');
+export const ICON_INFO = require('../../../../../images/icon-info.png');
+export const ICON_USERS = require('../../../../../images/icon-users.png');
 export const JITSI_LOGO = require('../../../../../images/jitsiLogo_square.png');
 export const TRACK_COLOR = BaseTheme.palette.ui15;
 
@@ -13,6 +15,40 @@ export const TRACK_COLOR = BaseTheme.palette.ui15;
 // XXX The "standard" {@code BoxModel.padding} has been deemed insufficient in
 // the special case(s) of the recording feature below.
 const _PADDING = BoxModel.padding * 1.5;
+
+
+const header = {
+    alignItems: 'center',
+    flex: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: _PADDING,
+    paddingTop: _PADDING
+};
+
+const recordingIcon = {
+    width: BaseTheme.spacing[4],
+    height: BaseTheme.spacing[4]
+};
+
+const title = {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    paddingLeft: BoxModel.padding
+};
+
+const baseHighlightDialogButton = {
+    borderRadius: BaseTheme.shape.borderRadius,
+    height: BaseTheme.spacing[7],
+    flex: 1
+};
+
+const baseHighlightDialogLabel = {
+    ...BaseTheme.typography.bodyShortBoldLarge,
+    textTransform: 'none'
+};
 
 export default {
     /**
@@ -24,7 +60,6 @@ export default {
         flex: 1,
         flexDirection: 'column',
         justifyContent: 'center',
-        paddingHorizontal: BaseTheme.spacing[3],
         paddingTop: BaseTheme.spacing[3]
     },
 
@@ -34,7 +69,61 @@ export default {
     startRecordingLabel: {
         color: BaseTheme.palette.text01,
         marginRight: 12
+    },
+    highlightButton: {
+        backgroundColor: BaseTheme.palette.section01,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: BaseTheme.spacing[0],
+        marginBottom: BaseTheme.spacing[0],
+        marginRight: BaseTheme.spacing[1]
+    },
+    highlightButtonText: {
+        color: BaseTheme.palette.field01,
+        paddingLeft: BaseTheme.spacing[2],
+        ...BaseTheme.typography.labelBold
+    },
+    highlightDialog: {
+        paddingLeft: BaseTheme.spacing[3],
+        paddingRight: BaseTheme.spacing[3],
+        paddingTop: BaseTheme.spacing[4],
+        paddingBottom: BaseTheme.spacing[7]
+    },
+    highlightDialogHeading: {
+        ...BaseTheme.typography.heading5,
+        color: BaseTheme.palette.text01,
+        marginBottom: BaseTheme.spacing[3]
+    },
+    highlightDialogText: {
+        ...BaseTheme.typography.bodyLongRegularLarge,
+        color: BaseTheme.palette.text01,
+        marginBottom: BaseTheme.spacing[5]
+    },
+    highlightDialogButtonsContainer: {
+        display: 'flex',
+        flexDirection: 'row'
+    },
+    highlightDialogCancelButton: {
+        ...baseHighlightDialogButton,
+        backgroundColor: BaseTheme.palette.section01
+    },
+    highlightDialogHighlightButton: {
+        ...baseHighlightDialogButton,
+        backgroundColor: BaseTheme.palette.action01
+    },
+    highlightDialogCancelLabel: {
+        ...baseHighlightDialogLabel,
+        color: BaseTheme.palette.field01
+    },
+    highlightDialogHighlighLabel: {
+        ...baseHighlightDialogLabel,
+        color: BaseTheme.palette.text01
+    },
+    highlightDialogButtonsSpace: {
+        width: 16,
+        height: '100%'
     }
+
 };
 
 /**
@@ -52,12 +141,20 @@ ColorSchemeRegistry.register('StartRecordingDialogContent', {
     },
 
     header: {
-        alignItems: 'center',
-        flex: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingBottom: _PADDING,
-        paddingTop: _PADDING
+        ...header,
+        marginHorizontal: BaseTheme.spacing[3]
+    },
+
+    headerIntegrations: {
+        ...header,
+        paddingHorizontal: BaseTheme.spacing[3]
+    },
+
+    headerInfo: {
+        ...header,
+        backgroundColor: BaseTheme.palette.warning03,
+        marginBottom: BaseTheme.spacing[4],
+        paddingHorizontal: BaseTheme.spacing[3]
     },
 
     loggedIn: {
@@ -65,8 +162,11 @@ ColorSchemeRegistry.register('StartRecordingDialogContent', {
     },
 
     recordingIcon: {
-        width: BaseTheme.spacing[4],
-        height: BaseTheme.spacing[4]
+        ...recordingIcon
+    },
+
+    recordingInfoIcon: {
+        ...recordingIcon
     },
 
     recordingText: {
@@ -86,11 +186,12 @@ ColorSchemeRegistry.register('StartRecordingDialogContent', {
     },
 
     title: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'left',
-        paddingLeft: BoxModel.padding
+        ...title
+    },
+
+    titleInfo: {
+        ...title,
+        color: BaseTheme.palette.text07Info
     },
 
     text: {
