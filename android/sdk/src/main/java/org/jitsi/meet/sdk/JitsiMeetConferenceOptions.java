@@ -62,6 +62,23 @@ public class JitsiMeetConferenceOptions implements Parcelable {
      * USer information, to be used when no token is specified.
      */
     private JitsiMeetUserInfo userInfo;
+     /**
+     * Conference subject.
+     */
+    private String subject;
+      /**
+     * Color scheme override, see: https://github.com/jitsi/jitsi-meet/blob/dbedee5e22e5dcf9c92db96ef5bb3c9982fc526d/react/features/base/color-scheme/defaultScheme.js
+     */
+    private Bundle colorScheme;
+
+     /**
+     * Set to {@code true} to join the conference with audio / video muted or to start in audio
+     * only mode respectively.
+     */
+    private Boolean audioMuted;
+    private Boolean audioOnly;
+    private Boolean videoMuted;
+
 
     public URL getServerURL() {
         return serverURL;
@@ -86,7 +103,19 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     public String getToken() {
         return token;
     }
+      public Bundle getColorScheme() {
+        return colorScheme;
+    }
+      public boolean getAudioMuted() {
+        return audioMuted;
+    }
+     public boolean getAudioOnly() {
+        return audioOnly;
+    }
 
+    public boolean getVideoMuted() {
+        return videoMuted;
+    }
     public Bundle getFeatureFlags() {
         return featureFlags;
     }

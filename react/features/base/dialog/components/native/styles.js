@@ -126,21 +126,10 @@ const brandedDialogIconStyle = {
     fontSize: 24
 };
 
-export const inputDialog = {
-    bottomField: {
-        marginBottom: 0
-    },
 
-const brandedDialogItemContainerStyle = {
-    alignItems: 'center',
-    flexDirection: 'row',
-    height: MD_ITEM_HEIGHT
-};
 
-const brandedDialogIconStyle = {
-    color: ColorPalette.white,
-    fontSize: 24
-};
+
+
 
 export const inputDialog = {
     formMessage: {
