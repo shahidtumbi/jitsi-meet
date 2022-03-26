@@ -30,10 +30,6 @@
  */
 @property (nonatomic, copy, nullable) NSString *room;
 /**
- * Conference subject.
- */
-@property (nonatomic, copy, nullable) NSString *subject;
-/**
  * JWT token used for authentication.
  */
 @property (nonatomic, copy, nullable) NSString *token;
@@ -41,29 +37,11 @@
 @property (nonatomic, copy, nullable) NSString *testStr;
 
 /**
- * Color scheme override, see:
- * https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/color-scheme/defaultScheme.js
- */
-@property (nonatomic, copy, nullable) NSDictionary *colorScheme;
-
-/**
  * Feature flags. See: https://github.com/jitsi/jitsi-meet/blob/master/react/features/base/flags/constants.js
  */
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;
 
-/**
- * Set to YES to join the conference with audio / video muted or to start in audio
- * only mode respectively.
- */
-@property (nonatomic) BOOL audioOnly;
-@property (nonatomic) BOOL audioMuted;
-@property (nonatomic) BOOL videoMuted;
-
-/**
- * Set to YES to enable the welcome page. Typically SDK users won't need this enabled
- * since the host application decides which meeting to join.
- */
-@property (nonatomic) BOOL welcomePageEnabled;
+@property (nonatomic, readonly, nonnull) NSDictionary *config;
 
 /**
  * Information about the local user. It will be used in absence of a token.
@@ -73,6 +51,18 @@
 - (void)setFeatureFlag:(NSString *_Nonnull)flag withBoolean:(BOOL)value;
 - (void)setFeatureFlag:(NSString *_Nonnull)flag withValue:(id _Nonnull)value;
 
+- (void)setConfigOverride:(NSString *_Nonnull)config withBoolean:(BOOL)value;
+- (void)setConfigOverride:(NSString *_Nonnull)config withValue:(id _Nonnull)value;
+- (void)setConfigOverride:(NSString *_Nonnull)config withDictionary:(NSDictionary * _Nonnull)dictionary;
+- (void)setConfigOverride:(NSString *_Nonnull)config withArray:( NSArray * _Nonnull)array;
+
+- (void)setAudioOnly:(BOOL)audioOnly;
+- (void)setAudioMuted:(BOOL)audioMuted;
+- (void)setVideoMuted:(BOOL)videoMuted;
+- (void)setCallHandle:(NSString *_Nonnull)callHandle;
+- (void)setCallUUID:(NSUUID *_Nonnull)callUUID;
+- (void)setSubject:(NSString *_Nonnull)subject;
+
 @end
 
 @interface JitsiMeetConferenceOptions : NSObject
@@ -80,18 +70,10 @@
 @property (nonatomic, copy, nullable, readonly) NSURL *serverURL;
 
 @property (nonatomic, copy, nullable, readonly) NSString *room;
-@property (nonatomic, copy, nullable, readonly) NSString *subject;
 @property (nonatomic, copy, nullable, readonly) NSString *token;
 @property (nonatomic, copy, nullable, readonly) NSString *testStr;
 
-@property (nonatomic, copy, nullable) NSDictionary *colorScheme;
 @property (nonatomic, readonly, nonnull) NSDictionary *featureFlags;
-
-@property (nonatomic, readonly) BOOL audioOnly;
-@property (nonatomic, readonly) BOOL audioMuted;
-@property (nonatomic, readonly) BOOL videoMuted;
-
-@property (nonatomic, readonly) BOOL welcomePageEnabled;
 
 @property (nonatomic, nullable) JitsiMeetUserInfo *userInfo;
 

@@ -1,8 +1,10 @@
 .vertical-filmstrip .filmstrip {
     &.hide-videos {
-        .remote-videos-container {
-            opacity: 0;
-            pointer-events: none;
+        .remote-videos {
+            & > div {
+                opacity: 0;
+                pointer-events: none;
+            }
         }
     }
 
@@ -26,7 +28,7 @@
     flex-direction: column-reverse;
     height: 100%;
     width: 100%;
-    padding: ($desktopAppDragBarHeight - 5px) 5px 10px;
+    padding: 0;
     /**
      * fixed positioning is necessary for remote menus and tooltips to pop
      * out of the scrolling filmstrip. AtlasKit dialogs and tooltips use
@@ -35,12 +37,11 @@
      */
     position: fixed;
     top: 0;
-    transition: height .3s ease-in;
     right: 0;
     z-index: $filmstripVideosZ;
 
-    &.reduce-height {
-        height: calc(100% - #{$newToolbarSizeWithPadding});
+    &.no-vertical-padding {
+        padding: 0;
     }
 
     /**
@@ -54,11 +55,6 @@
         right: 0;
         width: auto;
 
-        &.hidden {
-            bottom: auto;
-            right: -196px;
-        }
-
         /**
          * An id selector is used to match id specificity with existing
          * filmstrip styles.
@@ -66,8 +62,10 @@
         &#remoteVideos {
             border: $thumbnailsBorder solid transparent;
             padding-left: 0;
-            transition: right 2s;
+            border-left: 0;
             width: 100%;
+            height: 100%;
+            justify-content: center;
         }
     }
 
@@ -76,11 +74,12 @@
      */
     #filmstripLocalVideo {
         align-self: initial;
-        bottom: 5px;
+        margin-bottom: 5px;
         display: flex;
         flex-direction: column-reverse;
         height: auto;
         justify-content: flex-start;
+        width: 100%;
 
         #filmstripLocalVideoThumbnail {
             width: calc(100% - 15px);
@@ -98,31 +97,8 @@
      * filmstrip from overlapping the left edge of the screen.
      */
     #filmstripLocalVideo,
-    #filmstripRemoteVideos {
+    .remote-videos {
         padding: 0;
-    }
-
-    #filmstripRemoteVideos {
-        @include minHWAutoFix();
-
-        display: flex;
-        flex: 1;
-        flex-direction: column-reverse;
-        height: auto;
-        overflow-x: hidden;
-        overflow-y: scroll;
-
-        #filmstripRemoteVideosContainer {
-            @include minHWAutoFix();
-            flex-direction: column-reverse;
-            overflow: visible;
-            width: calc(100% - 8px); // 8px for margin + border of the thumbnails
-
-            .videocontainer {
-                height: 0px;
-                width: 100%;
-            }
-        }
     }
 
     #remoteVideos {
@@ -132,56 +108,49 @@
         flex-grow: 1;
     }
 
-    .remote-videos-container {
+    .resizable-filmstrip #remoteVideos .videocontainer {
+        border-left: 0;
+        margin: 0;
+    }
+
+    &.reduce-height {
+        height: calc(100% - calc(#{$newToolbarSizeWithPadding} + #{$scrollHeight}));
+    }
+
+    .filmstrip__videos.vertical-view-grid#remoteVideos {
+        align-items: 'center';
+        border: 0px;
+        padding-right: 7px;
+
+        &.has-scroll {
+            padding-right: 0px;
+        }
+
+        .remote-videos > div {
+            left: 0px; // fixes an issue on FF - the div is aligned to the right by default for some reason
+        }
+
+        .videocontainer {
+            border: 0px;
+            margin: 2px;
+        }
+    }
+
+    .remote-videos {
         display: flex;
-        transition: opacity 1s;
-    }
+        overscroll-behavior: contain;
 
-    .hide-scrollbar#filmstripRemoteVideos {
-        margin-right: 7px; // Scrollbar size
-        &::-webkit-scrollbar {
-            display: none;
+        &.height-transition {
+            transition: height .3s ease-in;
+        }
+
+        & > div {
+            position: absolute;
+            transition: opacity 1s;
+        }
+
+        &.is-not-overflowing > div {
+            bottom: 0px;
         }
     }
-}
-
-/**
- * Workarounds for Edge and Firefox not handling scrolling properly with
- * flex-direction: column-reverse. The remove videos in filmstrip should
- * start scrolling from the bottom of the filmstrip, but in those browsers the
- * scrolling won't happen. Per W3C spec, scrolling should happen from the
- * bottom. As such, use css hacks to get around the css issue, with the intent
- * being to remove the hacks as the spec is supported.
- */
-@mixin undoColumnReverseVideos() {
-    .vertical-filmstrip {
-        #remoteVideos #filmstripRemoteVideos #filmstripRemoteVideosContainer {
-            flex-direction: column;
-        }
-    }
-}
-
-/**
- * FF does not include the scroll width when calculating the size of the content. That's why we need to include
- * ourselves the width of the scroll so that the remote videos are aligned with the local one.
- */
-@mixin filmstripSizeWithoutScroll {
-    .vertical-filmstrip {
-        #remoteVideos #filmstripRemoteVideos {
-            #filmstripRemoteVideosContainer {
-                width: calc(100% - 15px) // 8 px - margins + border of the thumbnails; 7px - for the scroll
-            }
-        }
-    }
-}
-
-/** Firefox detection hack **/
-@-moz-document url-prefix() {
-    @include undoColumnReverseVideos();
-    @include filmstripSizeWithoutScroll();
-}
-
-/** Edge detection hack **/
-@supports (-ms-ime-align:auto) {
-    @include undoColumnReverseVideos();
 }

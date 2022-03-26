@@ -1,6 +1,6 @@
 /* global $, APP */
 /* eslint-disable no-unused-vars */
-import Logger from 'jitsi-meet-logger';
+import Logger from '@jitsi/logger';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -8,17 +8,29 @@ import { Provider } from 'react-redux';
 
 import { createScreenSharingIssueEvent, sendAnalytics } from '../../../react/features/analytics';
 import { Avatar } from '../../../react/features/base/avatar';
+import theme from '../../../react/features/base/components/themes/participantsPaneTheme.json';
+import { getSourceNameSignalingFeatureFlag } from '../../../react/features/base/config';
 import { i18next } from '../../../react/features/base/i18n';
-import {
-    JitsiParticipantConnectionStatus
-} from '../../../react/features/base/lib-jitsi-meet';
 import { MEDIA_TYPE, VIDEO_TYPE } from '../../../react/features/base/media';
-import { getParticipantById } from '../../../react/features/base/participants';
+import {
+    getParticipantById,
+    getParticipantDisplayName
+} from '../../../react/features/base/participants';
 import { getTrackByMediaTypeAndParticipant } from '../../../react/features/base/tracks';
 import { CHAT_SIZE } from '../../../react/features/chat';
 import {
+    isParticipantConnectionStatusActive,
+    isParticipantConnectionStatusInactive,
+    isParticipantConnectionStatusInterrupted,
+    isTrackStreamingStatusActive,
+    isTrackStreamingStatusInactive,
+    isTrackStreamingStatusInterrupted
+} from '../../../react/features/connection-indicator/functions';
+import { FILMSTRIP_BREAKPOINT, isFilmstripResizable, getVerticalViewMaxWidth } from '../../../react/features/filmstrip';
+import {
     updateKnownLargeVideoResolution
 } from '../../../react/features/large-video/actions';
+import { getParticipantsPaneOpen } from '../../../react/features/participants-pane/functions';
 import { PresenceLabel } from '../../../react/features/presence-status';
 import { shouldDisplayTileView } from '../../../react/features/video-layout';
 /* eslint-enable no-unused-vars */
@@ -221,8 +233,20 @@ export default class LargeVideoManager {
             const state = APP.store.getState();
             const participant = getParticipantById(state, id);
             const connectionStatus = participant?.connectionStatus;
-            const isVideoRenderable = !isVideoMuted
-                && (APP.conference.isLocalId(id) || connectionStatus === JitsiParticipantConnectionStatus.ACTIVE);
+
+            let isVideoRenderable;
+
+            if (getSourceNameSignalingFeatureFlag(state)) {
+                const videoTrack = getTrackByMediaTypeAndParticipant(
+                    state['features/base/tracks'], MEDIA_TYPE.VIDEO, id);
+
+                isVideoRenderable = !isVideoMuted
+                    && (APP.conference.isLocalId(id) || isTrackStreamingStatusActive(videoTrack));
+            } else {
+                isVideoRenderable = !isVideoMuted
+                    && (APP.conference.isLocalId(id) || isParticipantConnectionStatusActive(participant));
+            }
+
             const isAudioOnly = APP.conference.isAudioOnly();
             const showAvatar
                 = isVideoContainer
@@ -273,8 +297,16 @@ export default class LargeVideoManager {
                 this.updateLargeVideoAudioLevel(0);
             }
 
-            const messageKey
-                = connectionStatus === JitsiParticipantConnectionStatus.INACTIVE ? 'connection.LOW_BANDWIDTH' : null;
+            let messageKey;
+
+            if (getSourceNameSignalingFeatureFlag(state)) {
+                const videoTrack = getTrackByMediaTypeAndParticipant(
+                    state['features/base/tracks'], MEDIA_TYPE.VIDEO, id);
+
+                messageKey = isTrackStreamingStatusInactive(videoTrack) ? 'connection.LOW_BANDWIDTH' : null;
+            } else {
+                messageKey = isParticipantConnectionStatusInactive(participant) ? 'connection.LOW_BANDWIDTH' : null;
+            }
 
             // Do not show connection status message in the audio only mode,
             // because it's based on the video playback status.
@@ -312,10 +344,12 @@ export default class LargeVideoManager {
      * @private
      */
     updateParticipantConnStatusIndication(id, messageKey) {
+        const state = APP.store.getState();
+
         if (messageKey) {
             // Get user's display name
             const displayName
-                = APP.conference.getParticipantDisplayName(id);
+                = getParticipantDisplayName(state, id);
 
             this._setRemoteConnectionMessage(
                 messageKey,
@@ -366,7 +400,15 @@ export default class LargeVideoManager {
         }
 
         let widthToUse = this.preferredWidth || window.innerWidth;
-        const { isOpen } = APP.store.getState()['features/chat'];
+        const state = APP.store.getState();
+        const { isOpen } = state['features/chat'];
+        const { width: filmstripWidth, visible } = state['features/filmstrip'];
+        const isParticipantsPaneOpen = getParticipantsPaneOpen(state);
+        const resizableFilmstrip = isFilmstripResizable(state);
+
+        if (isParticipantsPaneOpen) {
+            widthToUse -= theme.participantsPaneWidth;
+        }
 
         if (isOpen && window.innerWidth > 580) {
             /**
@@ -374,6 +416,10 @@ export default class LargeVideoManager {
              * by subtracting the default width of the chat.
              */
             widthToUse -= CHAT_SIZE;
+        }
+
+        if (resizableFilmstrip && visible && filmstripWidth.current >= FILMSTRIP_BREAKPOINT) {
+            widthToUse -= getVerticalViewMaxWidth(state);
         }
 
         this.width = widthToUse;
@@ -492,13 +538,22 @@ export default class LargeVideoManager {
     showRemoteConnectionMessage(show) {
         if (typeof show !== 'boolean') {
             const participant = getParticipantById(APP.store.getState(), this.id);
-            const connStatus = participant?.connectionStatus;
+            const state = APP.store.getState();
 
-            // eslint-disable-next-line no-param-reassign
-            show = !APP.conference.isLocalId(this.id)
-                && (connStatus === JitsiParticipantConnectionStatus.INTERRUPTED
-                    || connStatus
-                        === JitsiParticipantConnectionStatus.INACTIVE);
+            if (getSourceNameSignalingFeatureFlag(state)) {
+                const videoTrack = getTrackByMediaTypeAndParticipant(
+                    state['features/base/tracks'], MEDIA_TYPE.VIDEO, this.id);
+
+                // eslint-disable-next-line no-param-reassign
+                show = !APP.conference.isLocalId(this.id)
+                    && (isTrackStreamingStatusInterrupted(videoTrack)
+                        || isTrackStreamingStatusInactive(videoTrack));
+            } else {
+                // eslint-disable-next-line no-param-reassign
+                show = !APP.conference.isLocalId(this.id)
+                    && (isParticipantConnectionStatusInterrupted(participant)
+                        || isParticipantConnectionStatusInactive(participant));
+            }
         }
 
         if (show) {

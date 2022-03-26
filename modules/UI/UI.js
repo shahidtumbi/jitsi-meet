@@ -3,15 +3,19 @@
 
 const UI = {};
 
+import Logger from '@jitsi/logger';
 import EventEmitter from 'events';
-import Logger from 'jitsi-meet-logger';
 
 import { isMobileBrowser } from '../../react/features/base/environment/utils';
 import { setColorAlpha } from '../../react/features/base/util';
-import { toggleChat } from '../../react/features/chat';
 import { setDocumentUrl } from '../../react/features/etherpad';
 import { setFilmstripVisible } from '../../react/features/filmstrip';
-import { joinLeaveNotificationsDisabled, setNotificationsEnabled } from '../../react/features/notifications';
+import {
+    joinLeaveNotificationsDisabled,
+    setNotificationsEnabled,
+    showNotification,
+    NOTIFICATION_TIMEOUT_TYPE
+} from '../../react/features/notifications';
 import {
     dockToolbox,
     setToolboxEnabled,
@@ -20,7 +24,6 @@ import {
 import UIEvents from '../../service/UI/UIEvents';
 
 import EtherpadManager from './etherpad/Etherpad';
-import SharedVideoManager from './shared_video/SharedVideo';
 import messageHandler from './util/MessageHandler';
 import UIUtil from './util/UIUtil';
 import VideoLayout from './videolayout/VideoLayout';
@@ -34,15 +37,11 @@ const eventEmitter = new EventEmitter();
 UI.eventEmitter = eventEmitter;
 
 let etherpadManager;
-let sharedVideoManager;
 
 const UIListeners = new Map([
     [
         UIEvents.ETHERPAD_CLICKED,
         () => etherpadManager && etherpadManager.toggleEtherpad()
-    ], [
-        UIEvents.SHARED_VIDEO_CLICKED,
-        () => sharedVideoManager && sharedVideoManager.toggleSharedVideo()
     ], [
         UIEvents.TOGGLE_FILMSTRIP,
         () => UI.toggleFilmstrip()
@@ -57,14 +56,6 @@ const UIListeners = new Map([
  */
 UI.isFullScreen = function() {
     return UIUtil.isFullScreen();
-};
-
-/**
- * Returns true if there is a shared video which is being shown (?).
- * @returns {boolean} - true if there is a shared video which is being shown.
- */
-UI.isSharedVideoShown = function() {
-    return Boolean(sharedVideoManager && sharedVideoManager.isSharedVideoShown);
 };
 
 /**
@@ -99,23 +90,12 @@ UI.initConference = function() {
 };
 
 /**
- * Returns the shared document manager object.
- * @return {EtherpadManager} the shared document manager object
- */
-UI.getSharedVideoManager = function() {
-    return sharedVideoManager;
-};
-
-/**
  * Starts the UI module and initializes all related components.
  *
  * @returns {boolean} true if the UI is ready and the conference should be
  * established, false - otherwise (for example in the case of welcome page)
  */
 UI.start = function() {
-    // Set the defaults for prompt dialogs.
-    $.prompt.setDefaults({ persistent: false });
-
     VideoLayout.initLargeVideo();
 
     // Do not animate the video area on UI start (second argument passed into
@@ -123,8 +103,6 @@ UI.start = function() {
     // the current dom layout, the quality label is part of the video layout and
     // will be seen animating in.
     VideoLayout.resizeVideoArea();
-
-    sharedVideoManager = new SharedVideoManager(eventEmitter);
 
     if (isMobileBrowser()) {
         $('body').addClass('mobile-browser');
@@ -242,12 +220,10 @@ UI.updateUserStatus = (user, status) => {
 
     const displayName = user.getDisplayName();
 
-    messageHandler.participantNotification(
-        displayName,
-        '',
-        'connected',
-        'dialOut.statusMessage',
-        { status: UIUtil.escapeHtml(status) });
+    APP.store.dispatch(showNotification({
+        titleKey: `${displayName} connected`,
+        descriptionKey: 'dialOut.statusMessage'
+    }, NOTIFICATION_TIMEOUT_TYPE.SHORT));
 };
 
 /**
@@ -258,11 +234,6 @@ UI.toggleFilmstrip = function() {
 
     APP.store.dispatch(setFilmstripVisible(!visible));
 };
-
-/**
- * Toggles the visibility of the chat panel.
- */
-UI.toggleChat = () => APP.store.dispatch(toggleChat());
 
 /**
  * Sets muted audio state for participant
@@ -304,16 +275,6 @@ UI.addListener = function(type, listener) {
  */
 UI.removeAllListeners = function() {
     eventEmitter.removeAllListeners();
-};
-
-/**
- * Removes the given listener for the given type of event.
- *
- * @param type the type of the event we're listening for
- * @param listener the listener we want to remove
- */
-UI.removeListener = function(type, listener) {
-    eventEmitter.removeListener(type, listener);
 };
 
 /**
@@ -375,18 +336,6 @@ UI.notifyMaxUsersLimitReached = function() {
     });
 };
 
-/**
- * Notify user that he was automatically muted when joned the conference.
- */
-UI.notifyInitiallyMuted = function() {
-    messageHandler.participantNotification(
-        null,
-        'notify.mutedTitle',
-        'connected',
-        'notify.muted',
-        null);
-};
-
 UI.handleLastNEndpoints = function(leavingIds, enteringIds) {
     VideoLayout.onLastNEndpointsChanged(leavingIds, enteringIds);
 };
@@ -403,15 +352,6 @@ UI.notifyTokenAuthFailed = function() {
         descriptionKey: 'dialog.tokenAuthFailed',
         titleKey: 'dialog.tokenAuthFailedTitle'
     });
-};
-
-UI.notifyFocusDisconnected = function(focus, retrySec) {
-    messageHandler.participantNotification(
-        null, 'notify.focus',
-        'disconnected', 'notify.focusFail',
-        { component: focus,
-            ms: retrySec }
-    );
 };
 
 /**
@@ -436,60 +376,6 @@ UI.getLargeVideoID = function() {
  */
 UI.getLargeVideo = function() {
     return VideoLayout.getLargeVideo();
-};
-
-/**
- * Show shared video.
- * @param {string} id the id of the sender of the command
- * @param {string} url video url
- * @param {string} attributes
-*/
-UI.onSharedVideoStart = function(id, url, attributes) {
-    if (sharedVideoManager) {
-        sharedVideoManager.onSharedVideoStart(id, url, attributes);
-    }
-};
-
-/**
- * Update shared video.
- * @param {string} id the id of the sender of the command
- * @param {string} url video url
- * @param {string} attributes
- */
-UI.onSharedVideoUpdate = function(id, url, attributes) {
-    if (sharedVideoManager) {
-        sharedVideoManager.onSharedVideoUpdate(id, url, attributes);
-    }
-};
-
-/**
- * Stop showing shared video.
- * @param {string} id the id of the sender of the command
- * @param {string} attributes
- */
-UI.onSharedVideoStop = function(id, attributes) {
-    if (sharedVideoManager) {
-        sharedVideoManager.onSharedVideoStop(id, attributes);
-    }
-};
-
-/**
- * Show shared video.
- * @param {string} url video url
- */
-UI.startSharedVideoEmitter = function(url) {
-    if (sharedVideoManager) {
-        sharedVideoManager.startSharedVideoEmitter(url);
-    }
-};
-
-/**
- * Stop shared video.
- */
-UI.stopSharedVideoEmitter = function() {
-    if (sharedVideoManager) {
-        sharedVideoManager.stopSharedVideoEmitter();
-    }
 };
 
 // TODO: Export every function separately. For now there is no point of doing

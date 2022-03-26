@@ -1,31 +1,27 @@
 // @flow
 
+/* eslint-disable react/jsx-handler-names */
+import { withStyles } from '@material-ui/styles';
 import React, { Component } from 'react';
+import { batch } from 'react-redux';
 
-import { Icon, IconMenuThumb } from '../../../base/icons';
-import { getLocalParticipant, getParticipantById, PARTICIPANT_ROLE } from '../../../base/participants';
+import ConnectionIndicatorContent from
+    '../../../../features/connection-indicator/components/web/ConnectionIndicatorContent';
+import { isMobileBrowser } from '../../../base/environment/utils';
+import { translate } from '../../../base/i18n';
+import { Icon, IconHorizontalPoints } from '../../../base/icons';
+import { getParticipantById } from '../../../base/participants';
 import { Popover } from '../../../base/popover';
 import { connect } from '../../../base/redux';
-import { requestRemoteControl, stopController } from '../../../remote-control';
+import { setParticipantContextMenuOpen } from '../../../base/responsive-ui/actions';
 import { getCurrentLayout, LAYOUTS } from '../../../video-layout';
+import { renderConnectionStatus } from '../../actions.web';
 
-import MuteEveryoneElseButton from './MuteEveryoneElseButton';
-import MuteEveryoneElsesVideoButton from './MuteEveryoneElsesVideoButton';
+import ParticipantContextMenu from './ParticipantContextMenu';
 import { REMOTE_CONTROL_MENU_STATES } from './RemoteControlButton';
 
-import {
-    GrantModeratorButton,
-    MuteButton,
-    MuteVideoButton,
-    KickButton,
-    PrivateMessageMenuButton,
-    RemoteControlButton,
-    VideoMenu,
-    VolumeSlider
-} from './';
 
 declare var $: Object;
-declare var interfaceConfig: Object;
 
 /**
  * The type of the React {@code Component} props of
@@ -34,19 +30,19 @@ declare var interfaceConfig: Object;
 type Props = {
 
     /**
-     * Whether or not to display the kick button.
+     * Hides popover.
      */
-    _disableKick: boolean,
+    hidePopover: Function,
 
     /**
-     * Whether or not to display the remote mute buttons.
+     * Whether the popover is visible or not.
      */
-    _disableRemoteMute: Boolean,
+    popoverVisible: boolean,
 
     /**
-     * Whether or not the participant is a conference moderator.
+     * Shows popover.
      */
-    _isModerator: boolean,
+    showPopover: Function,
 
     /**
      * The position relative to the trigger the remote menu should display
@@ -61,10 +57,24 @@ type Props = {
     _overflowDrawer: boolean,
 
     /**
+     * Participant reference.
+     */
+    _participant: Object,
+
+    /**
      * The current state of the participant's remote control session.
      */
     _remoteControlState: number,
 
+    /**
+     * Whether or not the button should be visible.
+     */
+    buttonVisible: boolean,
+
+    /**
+     * An object containing the CSS classes.
+     */
+    classes: Object,
 
     /**
      * The redux dispatch function.
@@ -72,30 +82,72 @@ type Props = {
     dispatch: Function,
 
     /**
-     * A value between 0 and 1 indicating the volume of the participant's
-     * audio element.
+     * The ID for the participant on which the remote video menu will act.
      */
-    initialVolumeValue: ?number,
+    participantID: string,
 
     /**
-     * Callback to invoke when changing the level of the participant's
-     * audio element.
+     * Whether the remote video context menu is disabled.
      */
-    onVolumeChange: Function,
+    _disabled: Boolean,
 
     /**
      * The ID for the participant on which the remote video menu will act.
      */
-    participantID: string,
+    _participantDisplayName: string,
+
+    /**
+     * Whether the popover should render the Connection Info stats.
+     */
+    _showConnectionInfo: Boolean,
+
+    /**
+     * Invoked to obtain translated strings.
+     */
+    t: Function
+};
+
+const styles = theme => {
+    return {
+        triggerButton: {
+            backgroundColor: theme.palette.action01,
+            padding: '3px',
+            display: 'inline-block',
+            borderRadius: '4px'
+        },
+
+        contextMenu: {
+            position: 'relative',
+            marginTop: 0,
+            right: 'auto',
+            padding: '0',
+            marginRight: '4px',
+            marginBottom: '4px'
+        }
+    };
 };
 
 /**
  * React {@code Component} for displaying an icon associated with opening the
  * the {@code VideoMenu}.
  *
- * @extends {Component}
+ * @augments {Component}
  */
 class RemoteVideoMenuTriggerButton extends Component<Props> {
+
+    /**
+     * Initializes a new RemoteVideoMenuTriggerButton instance.
+     *
+     * @param {Object} props - The read-only React Component props with which
+     * the new instance is to be initialized.
+     */
+    constructor(props: Props) {
+        super(props);
+
+        this._onPopoverClose = this._onPopoverClose.bind(this);
+        this._onPopoverOpen = this._onPopoverOpen.bind(this);
+    }
+
     /**
      * Implements React's {@link Component#render()}.
      *
@@ -103,26 +155,84 @@ class RemoteVideoMenuTriggerButton extends Component<Props> {
      * @returns {ReactElement}
      */
     render() {
-        const content = this._renderRemoteVideoMenu();
+        const {
+            _disabled,
+            _overflowDrawer,
+            _showConnectionInfo,
+            _participantDisplayName,
+            buttonVisible,
+            classes,
+            participantID,
+            popoverVisible
+        } = this.props;
+        let content;
+
+        if (_showConnectionInfo) {
+            content = <ConnectionIndicatorContent participantId = { participantID } />;
+        } else if (!_disabled) {
+            content = this._renderRemoteVideoMenu();
+        }
 
         if (!content) {
             return null;
         }
 
+        const username = _participantDisplayName;
+
         return (
             <Popover
                 content = { content }
-                overflowDrawer = { this.props._overflowDrawer }
-                position = { this.props._menuPosition }>
-                <span
-                    className = 'popover-trigger remote-video-menu-trigger'>
-                    <Icon
-                        size = '1em'
-                        src = { IconMenuThumb }
-                        title = 'Remote user controls' />
-                </span>
+                id = 'remote-video-menu-trigger'
+                onPopoverClose = { this._onPopoverClose }
+                onPopoverOpen = { this._onPopoverOpen }
+                position = { this.props._menuPosition }
+                visible = { popoverVisible }>
+                {!_overflowDrawer && buttonVisible && !_disabled && (
+                    <span
+                        className = { classes.triggerButton }
+                        role = 'button'>
+                        {!isMobileBrowser() && <Icon
+                            ariaLabel = { this.props.t('dialog.remoteUserControls', { username }) }
+                            size = { 18 }
+                            src = { IconHorizontalPoints }
+                            tabIndex = { 0 }
+                            title = { this.props.t('dialog.remoteUserControls', { username }) } />
+                        }
+                    </span>
+                )}
             </Popover>
         );
+    }
+
+    _onPopoverOpen: () => void;
+
+    /**
+     * Disable and hide toolbox while context menu is open.
+     *
+     * @returns {void}
+     */
+    _onPopoverOpen() {
+        const { dispatch, showPopover } = this.props;
+
+        showPopover();
+        dispatch(setParticipantContextMenuOpen(true));
+    }
+
+    _onPopoverClose: () => void;
+
+    /**
+     * Render normal context menu next time popover dialog opens.
+     *
+     * @returns {void}
+     */
+    _onPopoverClose() {
+        const { dispatch, hidePopover } = this.props;
+
+        hidePopover();
+        batch(() => {
+            dispatch(setParticipantContextMenuOpen(false));
+            dispatch(renderConnectionStatus(false));
+        });
     }
 
     /**
@@ -133,100 +243,16 @@ class RemoteVideoMenuTriggerButton extends Component<Props> {
      * @returns {ReactElement}
      */
     _renderRemoteVideoMenu() {
-        const {
-            _disableKick,
-            _disableRemoteMute,
-            _isModerator,
-            dispatch,
-            initialVolumeValue,
-            onVolumeChange,
-            _remoteControlState,
-            participantID
-        } = this.props;
+        const { _participant, _remoteControlState, classes } = this.props;
 
-        const buttons = [];
-
-        if (_isModerator) {
-            if (!_disableRemoteMute) {
-                buttons.push(
-                    <MuteButton
-                        key = 'mute'
-                        participantID = { participantID } />
-                );
-                buttons.push(
-                    <MuteEveryoneElseButton
-                        key = 'mute-others'
-                        participantID = { participantID } />
-                );
-                buttons.push(
-                    <MuteVideoButton
-                        key = 'mute-video'
-                        participantID = { participantID } />
-                );
-                buttons.push(
-                    <MuteEveryoneElsesVideoButton
-                        key = 'mute-others-video'
-                        participantID = { participantID } />
-                );
-            }
-
-            buttons.push(
-                <GrantModeratorButton
-                    key = 'grant-moderator'
-                    participantID = { participantID } />
-            );
-
-            if (!_disableKick) {
-                buttons.push(
-                    <KickButton
-                        key = 'kick'
-                        participantID = { participantID } />
-                );
-            }
-        }
-
-        if (_remoteControlState) {
-            let onRemoteControlToggle = null;
-
-            if (_remoteControlState === REMOTE_CONTROL_MENU_STATES.STARTED) {
-                onRemoteControlToggle = () => dispatch(stopController(true));
-            } else if (_remoteControlState === REMOTE_CONTROL_MENU_STATES.NOT_STARTED) {
-                onRemoteControlToggle = () => dispatch(requestRemoteControl(participantID));
-            }
-
-            buttons.push(
-                <RemoteControlButton
-                    key = 'remote-control'
-                    onClick = { onRemoteControlToggle }
-                    participantID = { participantID }
-                    remoteControlState = { _remoteControlState } />
-            );
-        }
-
-        buttons.push(
-            <PrivateMessageMenuButton
-                key = 'privateMessage'
-                participantID = { participantID } />
+        return (
+            <ParticipantContextMenu
+                className = { classes.contextMenu }
+                onSelect = { this._onPopoverClose }
+                participant = { _participant }
+                remoteControlState = { _remoteControlState }
+                thumbnailMenu = { true } />
         );
-
-        if (onVolumeChange && typeof initialVolumeValue === 'number' && !isNaN(initialVolumeValue)) {
-            buttons.push(
-                <VolumeSlider
-                    initialValue = { initialVolumeValue }
-                    key = 'volume-slider'
-                    onChange = { onVolumeChange } />
-            );
-        }
-
-        if (buttons.length > 0) {
-            return (
-                <VideoMenu id = { participantID }>
-                    { buttons }
-                </VideoMenu>
-            );
-        }
-
-        return null;
     }
 }
 
@@ -240,17 +266,17 @@ class RemoteVideoMenuTriggerButton extends Component<Props> {
  */
 function _mapStateToProps(state, ownProps) {
     const { participantID } = ownProps;
-    const localParticipant = getLocalParticipant(state);
-    const { remoteVideoMenu = {}, disableRemoteMute } = state['features/base/config'];
-    const { disableKick } = remoteVideoMenu;
     let _remoteControlState = null;
     const participant = getParticipantById(state, participantID);
+    const _participantDisplayName = participant?.name;
     const _isRemoteControlSessionActive = participant?.remoteControlSessionStatus ?? false;
     const _supportsRemoteControl = participant?.supportsRemoteControl ?? false;
     const { active, controller } = state['features/remote-control'];
     const { requestedParticipant, controlled } = controller;
     const activeParticipant = requestedParticipant || controlled;
     const { overflowDrawer } = state['features/toolbox'];
+    const { showConnectionInfo } = state['features/base/connection'];
+    const { remoteVideoMenu } = state['features/base/config'];
 
     if (_supportsRemoteControl
             && ((!active && !_isRemoteControlSessionActive) || activeParticipant === participantID)) {
@@ -273,18 +299,23 @@ function _mapStateToProps(state, ownProps) {
     case LAYOUTS.VERTICAL_FILMSTRIP_VIEW:
         _menuPosition = 'left-end';
         break;
+    case LAYOUTS.HORIZONTAL_FILMSTRIP_VIEW:
+        _menuPosition = 'top';
+        break;
     default:
         _menuPosition = 'auto';
     }
 
     return {
-        _isModerator: Boolean(localParticipant?.role === PARTICIPANT_ROLE.MODERATOR),
-        _disableKick: Boolean(disableKick),
-        _disableRemoteMute: Boolean(disableRemoteMute),
-        _remoteControlState,
+        _disabled: remoteVideoMenu?.disabled,
         _menuPosition,
-        _overflowDrawer: overflowDrawer
+        _overflowDrawer: overflowDrawer,
+        _participant: participant,
+        _participantDisplayName,
+        _remoteControlState,
+        _showConnectionInfo: showConnectionInfo
     };
 }
 
-export default connect(_mapStateToProps)(RemoteVideoMenuTriggerButton);
+export default translate(connect(_mapStateToProps)(
+    withStyles(styles)(RemoteVideoMenuTriggerButton)));

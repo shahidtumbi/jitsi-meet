@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { InputDialog } from '../../../base/dialog';
+import { translate } from '../../../base/i18n';
 import { connect } from '../../../base/redux';
-import { defaultSharedVideoLink } from '../../constants';
 import AbstractSharedVideoDialog from '../AbstractSharedVideoDialog';
 
 /**
@@ -12,22 +12,59 @@ import AbstractSharedVideoDialog from '../AbstractSharedVideoDialog';
  */
 class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
     /**
+     * Instantiates a new component.
+     *
+     * @inheritdoc
+     */
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            error: false
+        };
+
+        this._onSubmitValue = this._onSubmitValue.bind(this);
+    }
+
+    _onSubmitValue: () => boolean;
+
+    /**
+     * Callback to be invoked when the value of the link input is submitted.
+     *
+     * @param {string} value - The entered video link.
+     * @returns {boolean}
+     */
+    _onSubmitValue(value) {
+        const result = super._onSetVideoLink(value);
+
+        if (!result) {
+            this.setState({ error: true });
+        }
+
+        return result;
+    }
+
+    /**
      * Implements React's {@link Component#render()}.
      *
      * @inheritdoc
      */
     render() {
+        const { t } = this.props;
+        const { error } = this.state;
+
         return (
             <InputDialog
-                contentKey = 'dialog.shareVideoTitle'
-                onSubmit = { this._onSetVideoLink }
+                messageKey = { error ? 'dialog.sharedVideoDialogError' : undefined }
+                onSubmit = { this._onSubmitValue }
                 textInputProps = {{
-                    placeholder: defaultSharedVideoLink
-                }} />
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    placeholder: t('dialog.sharedVideoLinkPlaceholder')
+                }}
+                titleKey = 'dialog.shareVideoTitle' />
         );
     }
-
-    _onSetVideoLink: string => boolean;
 }
 
-export default connect()(SharedVideoDialog);
+export default translate(connect()(SharedVideoDialog));

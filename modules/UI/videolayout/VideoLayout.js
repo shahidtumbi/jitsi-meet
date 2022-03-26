@@ -1,6 +1,6 @@
 /* global APP  */
 
-import Logger from 'jitsi-meet-logger';
+import Logger from '@jitsi/logger';
 
 import { MEDIA_TYPE, VIDEO_TYPE } from '../../../react/features/base/media';
 import {
@@ -8,7 +8,6 @@ import {
     getParticipantById
 } from '../../../react/features/base/participants';
 import { getTrackByMediaTypeAndParticipant } from '../../../react/features/base/tracks';
-import { SHARED_VIDEO_CONTAINER_TYPE } from '../shared_video/SharedVideo';
 
 import LargeVideoManager from './LargeVideoManager';
 import { VIDEO_CONTAINER_TYPE } from './VideoContainer';
@@ -89,7 +88,7 @@ const VideoLayout = {
         const participant = getParticipantById(state, id);
 
         if (participant?.isFakeParticipant) {
-            return SHARED_VIDEO_CONTAINER_TYPE;
+            return VIDEO_TYPE.CAMERA;
         }
 
         const videoTrack = getTrackByMediaTypeAndParticipant(state['features/base/tracks'], MEDIA_TYPE.VIDEO, id);

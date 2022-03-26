@@ -1,12 +1,3 @@
-/**
- * The type of (redux) action to set the muted state of the local audio.
- *
- * {
- *     type: SET_AUDIO_MUTED,
- *     muted: boolean
- * }
- */
-export const SET_AUDIO_MUTED = 'SET_AUDIO_MUTED';
 
 /**
  * The type of (redux) action to adjust the availability of the local audio.
@@ -19,6 +10,26 @@ export const SET_AUDIO_MUTED = 'SET_AUDIO_MUTED';
 export const SET_AUDIO_AVAILABLE = 'SET_AUDIO_AVAILABLE';
 
 /**
+ * The type of (redux) action to set the muted state of the local audio.
+ *
+ * {
+ *     type: SET_AUDIO_MUTED,
+ *     muted: boolean
+ * }
+ */
+export const SET_AUDIO_MUTED = 'SET_AUDIO_MUTED';
+
+/**
+ * The type of (redux) action to enable/disable the audio mute icon.
+ *
+ * {
+ *     type: SET_AUDIO_UNMUTE_PERMISSIONS,
+ *     blocked: boolean
+ * }
+ */
+export const SET_AUDIO_UNMUTE_PERMISSIONS = 'SET_AUDIO_UNMUTE_PERMISSIONS';
+
+/**
  * The type of (redux) action to set the facing mode of the local video camera
  * to a specific value.
  *
@@ -28,6 +39,16 @@ export const SET_AUDIO_AVAILABLE = 'SET_AUDIO_AVAILABLE';
  * }
  */
 export const SET_CAMERA_FACING_MODE = 'SET_CAMERA_FACING_MODE';
+
+/**
+ * The type of (redux) action to set the muted state of the local screenshare.
+ *
+ * {
+ *     type: SET_SCREENSHARE_MUTED,
+ *     muted: boolean
+ * }
+ */
+export const SET_SCREENSHARE_MUTED = 'SET_SCREENSHARE_MUTED';
 
 /**
  * The type of (redux) action to adjust the availability of the local video.
@@ -60,6 +81,16 @@ export const SET_VIDEO_MUTED = 'SET_VIDEO_MUTED';
  * }
  */
 export const STORE_VIDEO_TRANSFORM = 'STORE_VIDEO_TRANSFORM';
+
+/**
+ * The type of (redux) action to enable/disable the video mute icon.
+ *
+ * {
+ *     type: SET_VIDEO_UNMUTE_PERMISSIONS,
+ *     blocked: boolean
+ * }
+ */
+ export const SET_VIDEO_UNMUTE_PERMISSIONS = 'SET_VIDEO_UNMUTE_PERMISSIONS';
 
 /**
  * The type of (redux) action to toggle the local video camera facing mode. In

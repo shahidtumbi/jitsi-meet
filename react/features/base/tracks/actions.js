@@ -4,12 +4,15 @@ import {
     createTrackMutedEvent,
     sendAnalytics
 } from '../../analytics';
-import { showErrorNotification, showNotification } from '../../notifications';
+import { NOTIFICATION_TIMEOUT_TYPE, showErrorNotification, showNotification } from '../../notifications';
+import { getCurrentConference } from '../conference';
+import { getMultipleVideoSupportFeatureFlag } from '../config';
 import { JitsiTrackErrors, JitsiTrackEvents, createLocalTrack } from '../lib-jitsi-meet';
 import {
     CAMERA_FACING_MODE,
     MEDIA_TYPE,
     setAudioMuted,
+    setScreenshareMuted,
     setVideoMuted,
     VIDEO_MUTISM_AUTHORITY,
     VIDEO_TYPE
@@ -23,6 +26,7 @@ import {
     TRACK_ADDED,
     TRACK_CREATE_CANCELED,
     TRACK_CREATE_ERROR,
+    TRACK_MUTE_UNMUTE_FAILED,
     TRACK_NO_DATA_FROM_SOURCE,
     TRACK_REMOVED,
     TRACK_STOPPED,
@@ -40,6 +44,35 @@ import {
 import logger from './logger';
 
 /**
+ * Add a given local track to the conference.
+ *
+ * @param {JitsiLocalTrack} newTrack - The local track to be added to the conference.
+ * @returns {Function}
+ */
+export function addLocalTrack(newTrack) {
+    return async (dispatch, getState) => {
+        const conference = getCurrentConference(getState());
+
+        if (conference) {
+            await conference.addTrack(newTrack);
+        }
+
+        const setMuted = newTrack.isVideoTrack()
+            ? getMultipleVideoSupportFeatureFlag(getState())
+            && newTrack.getVideoType() === VIDEO_TYPE.DESKTOP
+                ? setScreenshareMuted
+                : setVideoMuted
+            : setAudioMuted;
+        const isMuted = newTrack.isMuted();
+
+        logger.log(`Adding ${newTrack.getType()} track - ${isMuted ? 'muted' : 'unmuted'}`);
+        await dispatch(setMuted(isMuted));
+
+        return dispatch(_addTracks([ newTrack ]));
+    };
+}
+
+/**
  * Requests the creating of the desired media type tracks. Desire is expressed
  * by base/media unless the function caller specifies desired media types
  * explicitly and thus override base/media. Dispatches a
@@ -55,9 +88,12 @@ export function createDesiredLocalTracks(...desiredTypes) {
         dispatch(destroyLocalDesktopTrackIfExists());
 
         if (desiredTypes.length === 0) {
-            const { audio, video } = state['features/base/media'];
+            const { video } = state['features/base/media'];
 
-            audio.muted || desiredTypes.push(MEDIA_TYPE.AUDIO);
+            // XXX: Always create the audio track early, even if it will be muted.
+            // This fixes a timing issue when adding the track to the conference which
+            // manifests primarily on iOS 15.
+            desiredTypes.push(MEDIA_TYPE.AUDIO);
 
             // XXX When the app is coming into the foreground from the
             // background in order to handle a URL, it may realize the new
@@ -185,12 +221,19 @@ export function createLocalTracksA(options = {}) {
 }
 
 /**
- * Calls JitsiLocalTrack#dispose() on all local tracks ignoring errors when
+ * Calls JitsiLocalTrack#dispose() on the given track or on all local tracks (if none are passed) ignoring errors if
  * track is already disposed. After that signals tracks to be removed.
  *
+ * @param {JitsiLocalTrack|null} [track] - The local track that needs to be destroyed.
  * @returns {Function}
  */
-export function destroyLocalTracks() {
+export function destroyLocalTracks(track = null) {
+    if (track) {
+        return dispatch => {
+            dispatch(_disposeAndRemoveTracks([ track ]));
+        };
+    }
+
     return (dispatch, getState) => {
         // First wait until any getUserMedia in progress is settled and then get
         // rid of all local tracks.
@@ -227,7 +270,7 @@ export function noDataFromSource(track) {
  * @returns {Function}
  */
 export function showNoDataFromSourceVideoError(jitsiTrack) {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         let notificationInfo;
 
         const track = getTrackByJitsiTrack(getState()['features/base/tracks'], jitsiTrack);
@@ -239,12 +282,11 @@ export function showNoDataFromSourceVideoError(jitsiTrack) {
         if (track.isReceivingData) {
             notificationInfo = undefined;
         } else {
-            const notificationAction = showErrorNotification({
+            const notificationAction = await dispatch(showErrorNotification({
                 descriptionKey: 'dialog.cameraNotSendingData',
                 titleKey: 'dialog.cameraNotSendingDataTitle'
-            });
+            }, NOTIFICATION_TIMEOUT_TYPE.LONG));
 
-            dispatch(notificationAction);
             notificationInfo = {
                 uid: notificationAction.uid
             };
@@ -305,49 +347,34 @@ export function replaceLocalTrack(oldTrack, newTrack, conference) {
  * @returns {Function}
  */
 function replaceStoredTracks(oldTrack, newTrack) {
-    return dispatch => {
+    return async (dispatch, getState) => {
         // We call dispose after doing the replace because dispose will
         // try and do a new o/a after the track removes itself. Doing it
         // after means the JitsiLocalTrack.conference is already
         // cleared, so it won't try and do the o/a.
-        const disposePromise
-              = oldTrack
-                  ? dispatch(_disposeAndRemoveTracks([ oldTrack ]))
-                  : Promise.resolve();
+        if (oldTrack) {
+            await dispatch(_disposeAndRemoveTracks([ oldTrack ]));
+        }
 
-        return disposePromise
-            .then(() => {
-                if (newTrack) {
-                    // The mute state of the new track should be
-                    // reflected in the app's mute state. For example,
-                    // if the app is currently muted and changing to a
-                    // new track that is not muted, the app's mute
-                    // state should be falsey. As such, emit a mute
-                    // event here to set up the app to reflect the
-                    // track's mute state. If this is not done, the
-                    // current mute state of the app will be reflected
-                    // on the track, not vice-versa.
-                    const setMuted
-                          = newTrack.isVideoTrack()
-                              ? setVideoMuted
-                              : setAudioMuted;
-                    const isMuted = newTrack.isMuted();
+        if (newTrack) {
+            // The mute state of the new track should be reflected in the app's mute state. For example, if the
+            // app is currently muted and changing to a new track that is not muted, the app's mute state
+            // should be falsey. As such, emit a mute event here to set up the app to reflect the track's mute
+            // state. If this is not done, the current mute state of the app will be reflected on the track,
+            // not vice-versa.
+            const setMuted = newTrack.isVideoTrack()
+                ? getMultipleVideoSupportFeatureFlag(getState()) && newTrack.getVideoType() === VIDEO_TYPE.DESKTOP
+                    ? setScreenshareMuted
+                    : setVideoMuted
+                : setAudioMuted;
+            const isMuted = newTrack.isMuted();
 
-                    sendAnalytics(createTrackMutedEvent(
-                        newTrack.getType(),
-                        'track.replaced',
-                        isMuted));
-                    logger.log(`Replace ${newTrack.getType()} track - ${
-                        isMuted ? 'muted' : 'unmuted'}`);
+            sendAnalytics(createTrackMutedEvent(newTrack.getType(), 'track.replaced', isMuted));
+            logger.log(`Replace ${newTrack.getType()} track - ${isMuted ? 'muted' : 'unmuted'}`);
 
-                    return dispatch(setMuted(isMuted));
-                }
-            })
-            .then(() => {
-                if (newTrack) {
-                    return dispatch(_addTracks([ newTrack ]));
-                }
-            });
+            await dispatch(setMuted(isMuted));
+            await dispatch(_addTracks([ newTrack ]));
+        }
     };
 }
 
@@ -359,7 +386,7 @@ function replaceStoredTracks(oldTrack, newTrack) {
  * @returns {{ type: TRACK_ADDED, track: Track }}
  */
 export function trackAdded(track) {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         track.on(
             JitsiTrackEvents.TRACK_MUTE_CHANGED,
             () => dispatch(trackMutedChanged(track)));
@@ -369,7 +396,9 @@ export function trackAdded(track) {
 
         // participantId
         const local = track.isLocal();
-        const mediaType = track.getType();
+        const mediaType = getMultipleVideoSupportFeatureFlag(getState()) && track.getVideoType() === VIDEO_TYPE.DESKTOP
+            ? MEDIA_TYPE.SCREENSHARE
+            : track.getType();
         let isReceivingData, noDataFromSourceNotificationInfo, participantId;
 
         if (local) {
@@ -386,12 +415,10 @@ export function trackAdded(track) {
             track.on(JitsiTrackEvents.NO_DATA_FROM_SOURCE, () => dispatch(noDataFromSource({ jitsiTrack: track })));
             if (!isReceivingData) {
                 if (mediaType === MEDIA_TYPE.AUDIO) {
-                    const notificationAction = showNotification({
+                    const notificationAction = await dispatch(showNotification({
                         descriptionKey: 'dialog.micNotSendingData',
                         titleKey: 'dialog.micNotSendingDataTitle'
-                    });
-
-                    dispatch(notificationAction);
+                    }, NOTIFICATION_TIMEOUT_TYPE.LONG));
 
                     // Set the notification ID so that other parts of the application know that this was
                     // displayed in the context of the current device.
@@ -400,7 +427,9 @@ export function trackAdded(track) {
 
                     noDataFromSourceNotificationInfo = { uid: notificationAction.uid };
                 } else {
-                    const timeout = setTimeout(() => dispatch(showNoDataFromSourceVideoError(track)), 5000);
+                    const timeout = setTimeout(() => dispatch(
+                        showNoDataFromSourceVideoError(track)),
+                        NOTIFICATION_TIMEOUT_TYPE.MEDIUM);
 
                     noDataFromSourceNotificationInfo = { timeout };
                 }
@@ -453,6 +482,25 @@ export function trackMutedChanged(track) {
             jitsiTrack: track,
             muted: track.isMuted()
         }
+    };
+}
+
+/**
+ * Create an action for when a track's muted state change action has failed. This could happen because of
+ * {@code getUserMedia} errors during unmute or replace track errors at the peerconnection level.
+ *
+ * @param {(JitsiLocalTrack|JitsiRemoteTrack)} track - JitsiTrack instance.
+ * @param {boolean} wasMuting - If the operation that failed was a mute operation or an unmute operation.
+ * @returns {{
+ *     type: TRACK_MUTE_UNMUTE_FAILED,
+ *     track: Track
+ * }}
+ */
+export function trackMuteUnmuteFailed(track, wasMuting) {
+    return {
+        type: TRACK_MUTE_UNMUTE_FAILED,
+        track,
+        wasMuting
     };
 }
 
@@ -534,6 +582,26 @@ export function trackVideoTypeChanged(track, videoType) {
         track: {
             jitsiTrack: track,
             videoType
+        }
+    };
+}
+
+/**
+ * Create an action for when track streaming status changes.
+ *
+ * @param {(JitsiRemoteTrack)} track - JitsiTrack instance.
+ * @param {string} streamingStatus - The new streaming status of the track.
+ * @returns {{
+ *     type: TRACK_UPDATED,
+ *     track: Track
+ * }}
+ */
+export function trackStreamingStatusChanged(track, streamingStatus) {
+    return {
+        type: TRACK_UPDATED,
+        track: {
+            jitsiTrack: track,
+            streamingStatus
         }
     };
 }

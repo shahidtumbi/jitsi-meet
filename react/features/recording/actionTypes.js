@@ -38,6 +38,16 @@ export const SET_PENDING_RECORDING_NOTIFICATION_UID
     = 'SET_PENDING_RECORDING_NOTIFICATION_UID';
 
 /**
+ * The type of Redux action which sets the selected recording service.
+ *
+ * {
+ *     type: SET_SELECTED_RECORDING_SERVICE
+ * }
+ * @public
+ */
+export const SET_SELECTED_RECORDING_SERVICE = 'SET_SELECTED_RECORDING_SERVICE';
+
+/**
  * Sets the stream key last used by the user for later reuse.
  *
  * {
@@ -46,3 +56,13 @@ export const SET_PENDING_RECORDING_NOTIFICATION_UID
  * }
  */
 export const SET_STREAM_KEY = 'SET_STREAM_KEY';
+
+/**
+ * Sets the enable state of the meeting highlight button.
+ *
+ * {
+ *     type: SET_MEETING_HIGHLIGHT_BUTTON_STATE,
+ *     disabled: boolean
+ * }
+ */
+export const SET_MEETING_HIGHLIGHT_BUTTON_STATE = 'SET_MEETING_HIGHLIGHT_BUTTON_STATE';

@@ -16,15 +16,14 @@ import { MiddlewareRegistry } from '../base/redux';
 import {
     CANCEL_LOGIN,
     STOP_WAIT_FOR_OWNER,
+    UPGRADE_ROLE_FINISHED,
     WAIT_FOR_OWNER
 } from './actionTypes';
 import {
+    hideLoginDialog,
+    openWaitForOwnerDialog,
     stopWaitForOwner,
     waitForOwner
-} from './actions.native';
-import {
-    hideLoginDialog,
-    openWaitForOwnerDialog
 } from './actions.web';
 import { LoginDialog, WaitForOwnerDialog } from './components';
 
@@ -41,16 +40,23 @@ MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
 
     case CANCEL_LOGIN: {
+        const { dispatch, getState } = store;
+
         if (!isDialogOpen(store, WaitForOwnerDialog)) {
-            if (isWaitingForOwner(store)) {
-                store.dispatch(openWaitForOwnerDialog());
+            if (_isWaitingForOwner(store)) {
+                dispatch(openWaitForOwnerDialog());
 
                 return next(action);
             }
 
-            store.dispatch(hideLoginDialog());
+            dispatch(hideLoginDialog());
 
-            store.dispatch(maybeRedirectToWelcomePage());
+            const { authRequired, conference } = getState()['features/base/conference'];
+
+            // Only end the meeting if we are not already inside and trying to upgrade.
+            if (authRequired && !conference) {
+                dispatch(maybeRedirectToWelcomePage());
+            }
         }
         break;
     }
@@ -74,10 +80,10 @@ MiddlewareRegistry.register(store => next => action => {
     }
 
     case CONFERENCE_JOINED:
-        if (isWaitingForOwner(store)) {
+        if (_isWaitingForOwner(store)) {
             store.dispatch(stopWaitForOwner());
         }
-        store.dispatch(hideLoginDialog);
+        store.dispatch(hideLoginDialog());
         break;
 
     case CONFERENCE_LEFT:
@@ -85,16 +91,25 @@ MiddlewareRegistry.register(store => next => action => {
         break;
 
     case CONNECTION_ESTABLISHED:
-        store.dispatch(hideLoginDialog);
+        store.dispatch(hideLoginDialog());
         break;
 
     case STOP_WAIT_FOR_OWNER:
-        clearExistingWaitForOwnerTimeout(store);
+        _clearExistingWaitForOwnerTimeout(store);
         store.dispatch(hideDialog(WaitForOwnerDialog));
         break;
 
+    case UPGRADE_ROLE_FINISHED: {
+        const { error, progress } = action;
+
+        if (!error && progress === 1) {
+            store.dispatch(hideLoginDialog());
+        }
+        break;
+    }
+
     case WAIT_FOR_OWNER: {
-        clearExistingWaitForOwnerTimeout(store);
+        _clearExistingWaitForOwnerTimeout(store);
 
         const { handler, timeoutMs } = action;
 
@@ -116,7 +131,7 @@ MiddlewareRegistry.register(store => next => action => {
  * @param {Object} store - The redux store.
  * @returns {void}
  */
-function clearExistingWaitForOwnerTimeout(
+function _clearExistingWaitForOwnerTimeout(
         { getState }: { getState: Function }) {
     const { waitForOwnerTimeoutID } = getState()['features/authentication'];
 
@@ -129,6 +144,6 @@ function clearExistingWaitForOwnerTimeout(
  * @param {Object} store - The redux store.
  * @returns {void}
  */
-function isWaitingForOwner({ getState }: { getState: Function }) {
+function _isWaitingForOwner({ getState }: { getState: Function }) {
     return getState()['features/authentication'].waitForOwnerTimeoutID;
 }

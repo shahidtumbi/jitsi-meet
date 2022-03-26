@@ -7,8 +7,6 @@ import { Dialog } from '../../../base/dialog';
 import { translate } from '../../../base/i18n';
 import { getFieldValue } from '../../../base/react';
 import { connect } from '../../../base/redux';
-import { defaultSharedVideoLink } from '../../constants';
-import { getYoutubeLink } from '../../functions';
 import AbstractSharedVideoDialog from '../AbstractSharedVideoDialog';
 
 /**
@@ -28,7 +26,8 @@ class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
 
         this.state = {
             value: '',
-            okDisabled: true
+            okDisabled: true,
+            error: false
         };
 
         this._onChange = this._onChange.bind(this);
@@ -48,7 +47,7 @@ class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
 
         this.setState({
             value: linkValue,
-            okDisabled: !getYoutubeLink(linkValue)
+            okDisabled: !linkValue
         });
     }
 
@@ -60,7 +59,15 @@ class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
      * @returns {boolean}
      */
     _onSubmitValue() {
-        return this._onSetVideoLink(this.state.value);
+        const result = super._onSetVideoLink(this.state.value);
+
+        if (!result) {
+            this.setState({
+                error: true
+            });
+        }
+
+        return result;
     }
 
     /**
@@ -70,6 +77,7 @@ class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
      */
     render() {
         const { t } = this.props;
+        const { error } = this.state;
 
         return (
             <Dialog
@@ -83,18 +91,18 @@ class SharedVideoDialog extends AbstractSharedVideoDialog<*> {
                     autoFocus = { true }
                     className = 'input-control'
                     compact = { false }
+                    isInvalid = { error }
                     label = { t('dialog.videoLink') }
                     name = 'sharedVideoUrl'
                     onChange = { this._onChange }
-                    placeholder = { defaultSharedVideoLink }
+                    placeholder = { t('dialog.sharedVideoLinkPlaceholder') }
                     shouldFitContainer = { true }
                     type = 'text'
                     value = { this.state.value } />
+                { error && <span className = 'shared-video-dialog-error'>{ t('dialog.sharedVideoDialogError') }</span> }
             </Dialog>
         );
     }
-
-    _onSetVideoLink: string => boolean;
 
     _onChange: Object => void;
 }

@@ -1,7 +1,11 @@
 // @flow
 
+// https://github.com/software-mansion/react-native-gesture-handler/issues/320#issuecomment-443815828
+import 'react-native-gesture-handler';
+
 // Apply all necessary polyfills as early as possible to make sure anything imported henceforth
 // sees them.
+import 'react-native-get-random-values';
 import './features/mobile/polyfills';
 
 import React, { PureComponent } from 'react';
@@ -9,7 +13,8 @@ import { AppRegistry } from 'react-native';
 
 import { App } from './features/app/components';
 import { _initLogging } from './features/base/logging/functions';
-import { IncomingCallApp } from './features/mobile/incoming-call';
+import JitsiThemePaperProvider
+    from './features/base/ui/components/JitsiThemeProvider';
 
 declare var __DEV__;
 
@@ -29,7 +34,7 @@ type Props = {
  * the JS/JSX source code). So create a wrapper React Component (class) around
  * features/app's App instead.
  *
- * @extends Component
+ * @augments Component
  */
 class Root extends PureComponent<Props> {
     /**
@@ -40,8 +45,10 @@ class Root extends PureComponent<Props> {
      */
     render() {
         return (
-            <App
-                { ...this.props } />
+            <JitsiThemePaperProvider>
+                <App
+                    { ...this.props } />
+            </JitsiThemePaperProvider>
         );
     }
 }
@@ -71,6 +78,3 @@ if (!__DEV__) {
 
 // Register the main/root Component of JitsiMeetView.
 AppRegistry.registerComponent('App', () => Root);
-
-// Register the main/root Component of IncomingCallView.
-AppRegistry.registerComponent('IncomingCallApp', () => IncomingCallApp);

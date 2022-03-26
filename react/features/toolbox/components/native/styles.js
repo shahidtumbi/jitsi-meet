@@ -1,7 +1,7 @@
 // @flow
 
 import { ColorSchemeRegistry, schemeColor } from '../../../base/color-scheme';
-import { BoxModel, ColorPalette } from '../../../base/styles';
+import BaseTheme from '../../../base/ui/components/BaseTheme.native';
 
 const BUTTON_SIZE = 48;
 
@@ -18,7 +18,7 @@ const toolbarButton = {
     height: BUTTON_SIZE,
     justifyContent: 'center',
     marginHorizontal: 6,
-    marginTop: 6,
+    marginVertical: 6,
     width: BUTTON_SIZE
 };
 
@@ -27,7 +27,7 @@ const toolbarButton = {
  */
 const toolbarButtonIcon = {
     alignSelf: 'center',
-    color: ColorPalette.darkGrey,
+    color: BaseTheme.palette.icon04,
     fontSize: 24
 };
 
@@ -37,20 +37,40 @@ const toolbarButtonIcon = {
  */
 const whiteToolbarButtonIcon = {
     ...toolbarButtonIcon,
-    color: ColorPalette.white
+    color: BaseTheme.palette.icon01
+};
+
+/**
+ * The style of reaction buttons.
+ */
+const reactionButton = {
+    ...toolbarButton,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    marginTop: 0,
+    marginHorizontal: 0
+};
+
+/**
+ * The style of the emoji on the reaction buttons.
+ */
+const reactionEmoji = {
+    fontSize: 20,
+    color: BaseTheme.palette.icon01
+};
+
+const reactionMenu = {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: BaseTheme.palette.bottomSheet,
+    padding: BaseTheme.spacing[3]
 };
 
 /**
  * The Toolbox and toolbar related styles.
  */
 const styles = {
-
-    expandMenuContainer: {
-        alignItems: 'center',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-        flexDirection: 'column'
-    },
 
     sheetGestureRecognizer: {
         alignItems: 'stretch',
@@ -62,26 +82,23 @@ const styles = {
      */
     toolbox: {
         alignItems: 'center',
-        backgroundColor: ColorPalette.darkBackground,
+        backgroundColor: BaseTheme.palette.uiBackground,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         flexDirection: 'row',
-        flexGrow: 0,
-        justifyContent: 'space-between',
-        paddingHorizontal: BoxModel.margin,
-        paddingVertical: 8
+        justifyContent: 'space-between'
     },
 
     /**
      * The style of the root/top-level container of {@link Toolbox}.
      */
     toolboxContainer: {
+        backgroundColor: BaseTheme.palette.uiBackground,
         flexDirection: 'column',
-        flexGrow: 0,
-        width: '100%',
         maxWidth: 580,
         marginLeft: 'auto',
-        marginRight: 'auto'
+        marginRight: 'auto',
+        width: '100%'
     }
 };
 
@@ -108,7 +125,7 @@ ColorSchemeRegistry.register('Toolbox', {
     },
 
     backgroundToggle: {
-        backgroundColor: ColorPalette.toggled
+        backgroundColor: BaseTheme.palette.ui13
     },
 
     hangupButtonStyles: {
@@ -117,7 +134,68 @@ ColorSchemeRegistry.register('Toolbox', {
             ...toolbarButton,
             backgroundColor: schemeColor('hangup')
         },
-        underlayColor: ColorPalette.buttonUnderlay
+        underlayColor: BaseTheme.palette.underlay01
+    },
+
+    reactionDialog: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'transparent'
+    },
+
+    overflowReactionMenu: reactionMenu,
+
+    reactionMenu: {
+        ...reactionMenu,
+        borderRadius: 3,
+        width: 360
+    },
+
+    reactionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 16
+    },
+
+    reactionButton: {
+        style: reactionButton,
+        underlayColor: BaseTheme.palette.ui13,
+        emoji: reactionEmoji
+    },
+
+    raiseHandButton: {
+        style: {
+            ...reactionButton,
+            backgroundColor: BaseTheme.palette.ui13,
+            width: '100%',
+            borderRadius: 6
+        },
+        underlayColor: BaseTheme.palette.ui13,
+        emoji: reactionEmoji,
+        text: {
+            color: BaseTheme.palette.text01,
+            fontWeight: '600',
+            marginLeft: 8,
+            lineHeight: 24
+        },
+        container: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }
+    },
+
+    emojiAnimation: {
+        color: BaseTheme.palette.icon01,
+        position: 'absolute',
+        zIndex: 1001,
+        elevation: 2,
+        fontSize: 20,
+        left: '50%',
+        top: '100%'
     },
 
     /**

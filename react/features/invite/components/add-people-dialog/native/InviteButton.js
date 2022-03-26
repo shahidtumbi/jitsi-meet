@@ -1,14 +1,15 @@
 // @flow
 
 import type { Dispatch } from 'redux';
-
+import { NativeModules, NativeEventEmitter } from 'react-native';
 import { getFeatureFlag, INVITE_ENABLED } from '../../../../base/flags';
 import { translate } from '../../../../base/i18n';
-import { IconAddPeople } from '../../../../base/icons';
+import { IconInviteMore,IconAddPeople } from '../../../../base/icons';
 import { connect } from '../../../../base/redux';
 import { AbstractButton, type AbstractButtonProps } from '../../../../base/toolbox/components';
 import { doInvitePeople } from '../../../actions.native';
-
+const Siccura = NativeModules.Siccura;
+const eventEmitter = new NativeEventEmitter(Siccura);
 type Props = AbstractButtonProps & {
 
     /**
@@ -24,7 +25,7 @@ type Props = AbstractButtonProps & {
 class InviteButton extends AbstractButton<Props, *> {
     accessibilityLabel = 'toolbar.accessibilityLabel.shareRoom';
     icon = IconAddPeople;
-    label = 'toolbar.shareRoom';
+    label = 'Participant';
 
     /**
      * Handles clicking / pressing the button, and opens the appropriate dialog.
@@ -33,7 +34,16 @@ class InviteButton extends AbstractButton<Props, *> {
      * @returns {void}
      */
     _handleClick() {
-        this.props.dispatch(doInvitePeople());
+        //this.props.dispatch(doInvitePeople());
+        Siccura.callAction(
+            			JSON.stringify({ call_Action: 'addParticipant' }),
+            			(err) => {
+            				console.log(err);
+            			},
+            			(msg) => {
+            				console.log(`${msg}test`);
+            			}
+            		);
     }
 }
 

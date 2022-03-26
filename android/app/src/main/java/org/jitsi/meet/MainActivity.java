@@ -87,7 +87,7 @@ public class MainActivity extends JitsiMeetActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         JitsiMeet.showSplashScreen(this);
-        super.onCreate(savedInstanceState);
+        super.onCreate(null);
     }
 
     @Override
@@ -174,8 +174,8 @@ public class MainActivity extends JitsiMeetActivity {
 
         JitsiMeetConferenceOptions defaultOptions
             = new JitsiMeetConferenceOptions.Builder()
-            .setWelcomePageEnabled(true)
             .setServerURL(buildURL(defaultURL))
+            .setFeatureFlag("welcomepage.enabled", true)
             .setFeatureFlag("call-integration.enabled", false)
             .setFeatureFlag("resolution", 360)
             .setFeatureFlag("server-url-change.enabled", !configurationByRestrictions)
@@ -205,24 +205,6 @@ public class MainActivity extends JitsiMeetActivity {
                 }
             }
         }
-    }
-
-    @Override
-    protected void onConferenceTerminated(HashMap<String, Object> extraData) {
-        Log.d(TAG, "Conference terminated: " + extraData);
-    }
-
-    @Override
-    protected void onConferenceJoined(HashMap<String, Object> extraData) {
-//        super.onConferenceJoined(extraData);
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("call_status","Connected");
-            setcallStatus(jsonObject.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
     }
 
     // Activity lifecycle method overrides

@@ -46,82 +46,82 @@ type Props = {
     eventHandlers?: {|
 
         /**
-         * onAbort event handler.
+         * OnAbort event handler.
          */
         onAbort?: ?Function,
 
         /**
-         * onCanPlay event handler.
+         * OnCanPlay event handler.
          */
         onCanPlay?: ?Function,
 
         /**
-         * onCanPlayThrough event handler.
+         * OnCanPlayThrough event handler.
          */
         onCanPlayThrough?: ?Function,
 
         /**
-         * onEmptied event handler.
+         * OnEmptied event handler.
          */
         onEmptied?: ?Function,
 
         /**
-         * onEnded event handler.
+         * OnEnded event handler.
          */
         onEnded?: ?Function,
 
         /**
-         * onError event handler.
+         * OnError event handler.
          */
         onError?: ?Function,
 
         /**
-         * onLoadedData event handler.
+         * OnLoadedData event handler.
          */
         onLoadedData?: ?Function,
 
         /**
-         * onLoadedMetadata event handler.
+         * OnLoadedMetadata event handler.
          */
         onLoadedMetadata?: ?Function,
 
         /**
-         * onLoadStart event handler.
+         * OnLoadStart event handler.
          */
         onLoadStart?: ?Function,
 
         /**
-         * onPause event handler.
+         * OnPause event handler.
          */
         onPause?: ?Function,
 
         /**
-         * onPlay event handler.
+         * OnPlay event handler.
          */
         onPlay?: ?Function,
 
         /**
-         * onPlaying event handler.
+         * OnPlaying event handler.
          */
         onPlaying?: ?Function,
 
         /**
-         * onRateChange event handler.
+         * OnRateChange event handler.
          */
         onRateChange?: ?Function,
 
         /**
-         * onStalled event handler.
+         * OnStalled event handler.
          */
         onStalled?: ?Function,
 
         /**
-         * onSuspend event handler.
+         * OnSuspend event handler.
          */
         onSuspend?: ?Function,
 
         /**
-         * onWaiting event handler.
+         * OnWaiting event handler.
          */
         onWaiting?: ?Function
     |},
@@ -140,10 +140,11 @@ type Props = {
 /**
  * Component that renders a video element for a passed in video track.
  *
- * @extends Component
+ * @augments Component
  */
 class Video extends Component<Props> {
     _videoElement: ?Object;
+    _mounted: boolean;
 
     /**
      * Default values for {@code Video} component's properties.
@@ -189,6 +190,8 @@ class Video extends Component<Props> {
      * @returns {void}
      */
     componentDidMount() {
+        this._mounted = true;
+
         if (this._videoElement) {
             this._videoElement.volume = 0;
             this._videoElement.onplaying = this._onVideoPlaying;
@@ -200,7 +203,14 @@ class Video extends Component<Props> {
             // Ensure the video gets play() called on it. This may be necessary in the
             // case where the local video container was moved and re-attached, in which
             // case video does not autoplay.
-            this._videoElement.play();
+            this._videoElement.play()
+                .catch(error => {
+                    // Prevent uncaught "DOMException: The play() request was interrupted by a new load request"
+                    // when video playback takes long to start and it starts after the component was unmounted.
+                    if (this._mounted) {
+                        throw error;
+                    }
+                });
         }
     }
 
@@ -212,6 +222,7 @@ class Video extends Component<Props> {
      * @returns {void}
      */
     componentWillUnmount() {
+        this._mounted = false;
         this._detachTrack(this.props.videoTrack);
     }
 

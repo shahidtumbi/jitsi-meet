@@ -1,9 +1,9 @@
 .video-preview {
     background: none;
     display: inline-block;
-    max-height: 344px;
 
     &-container {
+        max-height: 344px;
         background: $menuBG;
         border-radius: 3px;
         overflow: auto;
@@ -78,5 +78,9 @@
             width: fit-content;
             white-space: nowrap;
         }
+    }
+    // Override @atlaskit/InlineDialog container which is made with styled components
+    & > div:nth-child(2) {
+        padding: 0;
     }
 }

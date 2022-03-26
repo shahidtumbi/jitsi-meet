@@ -25,7 +25,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.modules.core.PermissionListener;
@@ -40,7 +40,7 @@ import android.app.Activity;
  * A base activity for SDK users to embed. It uses {@link JitsiMeetFragment} to do the heavy
  * lifting and wires the remaining Activity lifecycle methods so it works out of the box.
  */
-public class JitsiMeetActivity extends FragmentActivity
+public class JitsiMeetActivity extends AppCompatActivity
     implements JitsiMeetActivityInterface {
 
     protected static final String TAG = JitsiMeetActivity.class.getSimpleName();
@@ -217,7 +217,6 @@ public class JitsiMeetActivity extends FragmentActivity
 
     protected void onConferenceTerminated(HashMap<String, Object> extraData) {
         JitsiMeetLogger.i("Conference terminated: " + extraData);
-        finish();
     }
 
     protected void onConferenceWillJoin(HashMap<String, Object> extraData) {
@@ -238,6 +237,11 @@ public class JitsiMeetActivity extends FragmentActivity
         } catch (Exception e) {
             JitsiMeetLogger.w("Invalid participant left extraData", e);
         }
+    }
+
+    protected void onReadyToClose() {
+        JitsiMeetLogger.i("SDK is ready to close");
+        finish();
     }
 
     // Activity lifecycle methods
@@ -320,6 +324,9 @@ public class JitsiMeetActivity extends FragmentActivity
                     break;
                 case PARTICIPANT_LEFT:
                     onParticipantLeft(event.getData());
+                    break;
+                case READY_TO_CLOSE:
+                    onReadyToClose();
                     break;
             }
         }

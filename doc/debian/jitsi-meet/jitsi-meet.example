@@ -4,6 +4,16 @@ types {
 # nginx's default mime.types doesn't include a mapping for wasm
     application/wasm     wasm;
 }
+upstream prosody {
+    zone upstreams 64K;
+    server 127.0.0.1:5280;
+    keepalive 2;
+}
+upstream jvb1 {
+    zone upstreams 64K;
+    server 127.0.0.1:9090;
+    keepalive 2;
+}
 server {
     listen 80;
     listen [::]:80;
@@ -35,6 +45,7 @@ server {
     ssl_session_tickets off;
 
     add_header Strict-Transport-Security "max-age=63072000" always;
+    set $prefix "";
 
     ssl_certificate /etc/jitsi/meet/jitsi-meet.example.com.crt;
     ssl_certificate_key /etc/jitsi/meet/jitsi-meet.example.com.key;
@@ -76,14 +87,16 @@ server {
 
     # BOSH
     location = /http-bind {
-        proxy_pass       http://localhost:5280/http-bind;
+        proxy_pass http://prosody/http-bind?prefix=$prefix&$args;
+        proxy_http_version 1.1;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header Host $http_host;
+        proxy_set_header Connection "";
     }
 
     # xmpp websockets
     location = /xmpp-websocket {
-        proxy_pass http://127.0.0.1:5280/xmpp-websocket?prefix=$prefix&$args;
+        proxy_pass http://prosody/xmpp-websocket?prefix=$prefix&$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -93,7 +106,7 @@ server {
 
     # colibri (JVB) websockets for jvb1
     location ~ ^/colibri-ws/default-id/(.*) {
-        proxy_pass http://127.0.0.1:9090/colibri-ws/default-id/$1$is_args$args;
+        proxy_pass http://jvb1/colibri-ws/default-id/$1$is_args$args;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -125,13 +138,6 @@ server {
         alias /etc/jitsi/meet/jitsi-meet.example.com-config.js;
     }
 
-    # Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
-    location ~ ^/([^/?&:'"]+)/(.*)$ {
-        set $subdomain "$1.";
-        set $subdir "$1/";
-        rewrite ^/([^/?&:'"]+)/(.*)$ /$2;
-    }
-
     # BOSH for subdomains
     location ~ ^/([^/?&:'"]+)/http-bind {
         set $subdomain "$1.";
@@ -148,5 +154,12 @@ server {
         set $prefix "$1";
 
         rewrite ^/(.*)$ /xmpp-websocket;
+    }
+
+    # Anything that didn't match above, and isn't a real file, assume it's a room name and redirect to /
+    location ~ ^/([^/?&:'"]+)/(.*)$ {
+        set $subdomain "$1.";
+        set $subdir "$1/";
+        rewrite ^/([^/?&:'"]+)/(.*)$ /$2;
     }
 }

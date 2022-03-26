@@ -15,6 +15,16 @@ export class AudioMixerEffect {
     _mixAudio: Object;
 
     /**
+     * MediaStream resulted from mixing.
+     */
+    _mixedMediaStream: Object;
+
+    /**
+     * MediaStreamTrack obtained from mixed stream.
+     */
+    _mixedMediaTrack: Object;
+
+    /**
      * Original MediaStream from the JitsiLocalTrack that uses this effect.
      */
     _originalStream: Object;
@@ -25,7 +35,7 @@ export class AudioMixerEffect {
     _originalTrack: Object;
 
     /**
-     * lib-jitsi-meet AudioMixer.
+     * Lib-jitsi-meet AudioMixer.
      */
     _audioMixer: Object;
 
@@ -68,7 +78,10 @@ export class AudioMixerEffect {
         this._audioMixer.addMediaStream(this._mixAudio.getOriginalStream());
         this._audioMixer.addMediaStream(this._originalStream);
 
-        return this._audioMixer.start();
+        this._mixedMediaStream = this._audioMixer.start();
+        this._mixedMediaTrack = this._mixedMediaStream.getTracks()[0];
+
+        return this._mixedMediaStream;
     }
 
     /**
